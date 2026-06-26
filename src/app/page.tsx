@@ -1,22 +1,47 @@
 import Link from "next/link";
 import { AlertTriangle, Boxes, ScanLine, Activity } from "lucide-react";
-import type { DashboardData } from "@/types";
-import { getBaseUrl } from "@/lib/base-url";
+import { prisma } from "@/lib/prisma";
 
-async function getDashboard() {
-  const response = await fetch(`${getBaseUrl()}/api/dashboard`, {
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to load dashboard");
-  }
-
-  return response.json() as Promise<DashboardData>;
-}
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const data = await getDashboard();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const [
+    totalProducts,
+    totalStockResult,
+    lowStock,
+    outOfStock,
+    recentScans,
+  ] = await Promise.all([
+    prisma.product.count(),
+    prisma.product.aggregate({
+      _sum: { stock: true },
+    }),
+    prisma.product.count({
+      where: {
+        stock: {
+          gt: 0,
+          lte: 5,
+        },
+      },
+    }),
+    prisma.product.count({
+      where: {
+        stock: 0,
+      },
+    }),
+    prisma.scanLog.findMany({
+      take: 5,
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        product: true,
+      },
+    }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -37,10 +62,10 @@ export default async function HomePage() {
       </section>
 
       <section className="grid grid-cols-2 gap-3">
-        <StatCard icon={<Boxes size={20} />} label="Products" value={data.totalProducts} />
-        <StatCard icon={<Activity size={20} />} label="Total stock" value={data.totalStock} />
-        <StatCard icon={<AlertTriangle size={20} />} label="Low stock" value={data.lowStock} />
-        <StatCard icon={<AlertTriangle size={20} />} label="Out of stock" value={data.outOfStock} danger />
+        <StatCard icon={<Boxes size={20} />} label="Products" value={totalProducts} />
+        <StatCard icon={<Activity size={20} />} label="Total stock" value={totalStockResult._sum.stock ?? 0} />
+        <StatCard icon={<AlertTriangle size={20} />} label="Low stock" value={lowStock} />
+        <StatCard icon={<AlertTriangle size={20} />} label="Out of stock" value={outOfStock} danger />
       </section>
 
       <section>
@@ -52,12 +77,12 @@ export default async function HomePage() {
         </div>
 
         <div className="space-y-3">
-          {data.recentScans.length === 0 ? (
+          {recentScans.length === 0 ? (
             <p className="rounded-2xl border border-slate-800 bg-slate-900 p-4 text-sm text-slate-400">
               No scans yet.
             </p>
           ) : (
-            data.recentScans.map((scan) => (
+            recentScans.map((scan) => (
               <div
                 key={scan.id}
                 className="flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900 p-4"
