@@ -2,6 +2,11 @@
 
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import type { IScannerControls } from "@zxing/browser";
+import {
+  BarcodeFormat,
+  DecodeHintType,
+  NotFoundException,
+} from "@zxing/library";
 import { useEffect, useRef, useState } from "react";
 import { Camera, Keyboard, Search, ScanLine } from "lucide-react";
 import type { Product, ScanAction } from "@/types";
@@ -34,16 +39,33 @@ export default function ScanPage() {
       setCameraError("");
       setMessage("");
 
-      const scanner = new BrowserMultiFormatReader();
+      const hints = new Map();
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+        BarcodeFormat.EAN_13,
+        BarcodeFormat.EAN_8,
+        BarcodeFormat.CODE_128,
+        BarcodeFormat.CODE_39,
+        BarcodeFormat.UPC_A,
+        BarcodeFormat.UPC_E,
+        BarcodeFormat.QR_CODE,
+      ]);
+
+      const scanner = new BrowserMultiFormatReader(hints);
 
       controlsRef.current = await scanner.decodeFromConstraints(
         {
           video: {
             facingMode: { ideal: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
           },
         },
         videoRef.current!,
-        async (result) => {
+        async (result, error) => {
+          if (error && !(error instanceof NotFoundException)) {
+            console.error(error);
+          }
+
           if (!result) return;
 
           const detectedBarcode = result.getText();
@@ -52,6 +74,7 @@ export default function ScanPage() {
 
           lastScannedRef.current = detectedBarcode;
           setBarcode(detectedBarcode);
+          setMessage(`Scanned: ${detectedBarcode}`);
 
           if (navigator.vibrate) {
             navigator.vibrate(100);
@@ -61,7 +84,7 @@ export default function ScanPage() {
 
           setTimeout(() => {
             lastScannedRef.current = "";
-          }, 2000);
+          }, 2500);
         }
       );
 
@@ -95,7 +118,7 @@ export default function ScanPage() {
     setIsLoading(false);
 
     if (!response.ok) {
-      setMessage("No product found for this barcode.");
+      setMessage(`Scanned ${code}, but no product was found.`);
       return;
     }
 
