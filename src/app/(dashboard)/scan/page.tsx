@@ -1,8 +1,9 @@
 "use client";
 
 import { BrowserMultiFormatReader } from "@zxing/browser";
+import type { IScannerControls } from "@zxing/browser";
 import { useEffect, useRef, useState } from "react";
-import { Keyboard, Search, ScanLine } from "lucide-react";
+import { Camera, Keyboard, Search, ScanLine } from "lucide-react";
 import type { Product, ScanAction } from "@/types";
 
 type SearchResponse = {
@@ -12,7 +13,7 @@ type SearchResponse = {
 
 export default function ScanPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const scannerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const controlsRef = useRef<IScannerControls | null>(null);
   const lastScannedRef = useRef("");
 
   const [barcode, setBarcode] = useState("");
@@ -20,50 +21,65 @@ export default function ScanPage() {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [cameraError, setCameraError] = useState("");
+  const [isCameraStarted, setIsCameraStarted] = useState(false);
 
   useEffect(() => {
-    async function startScanner() {
-      try {
-        const scanner = new BrowserMultiFormatReader();
-        scannerRef.current = scanner;
-
-        await scanner.decodeFromVideoDevice(
-          undefined,
-          videoRef.current!,
-          async (result) => {
-            if (!result) return;
-
-            const detectedBarcode = result.getText();
-
-            if (detectedBarcode === lastScannedRef.current) return;
-
-            lastScannedRef.current = detectedBarcode;
-            setBarcode(detectedBarcode);
-
-            if (navigator.vibrate) {
-              navigator.vibrate(100);
-            }
-
-            await searchProduct(detectedBarcode);
-
-            setTimeout(() => {
-              lastScannedRef.current = "";
-            }, 2000);
-          }
-        );
-      } catch {
-        setCameraError(
-          "Camera access failed. You can still enter the barcode manually."
-        );
-      }
-    }
-
-    startScanner();
-
     return () => {
-      scannerRef.current = null;
+      controlsRef.current?.stop();
     };
   }, []);
+
+  async function startScanner() {
+    try {
+      setCameraError("");
+      setMessage("");
+
+      const scanner = new BrowserMultiFormatReader();
+
+      controlsRef.current = await scanner.decodeFromConstraints(
+        {
+          video: {
+            facingMode: { ideal: "environment" },
+          },
+        },
+        videoRef.current!,
+        async (result) => {
+          if (!result) return;
+
+          const detectedBarcode = result.getText();
+
+          if (detectedBarcode === lastScannedRef.current) return;
+
+          lastScannedRef.current = detectedBarcode;
+          setBarcode(detectedBarcode);
+
+          if (navigator.vibrate) {
+            navigator.vibrate(100);
+          }
+
+          await searchProduct(detectedBarcode);
+
+          setTimeout(() => {
+            lastScannedRef.current = "";
+          }, 2000);
+        }
+      );
+
+      setIsCameraStarted(true);
+    } catch (error) {
+      console.error(error);
+      setIsCameraStarted(false);
+      setCameraError(
+        "Camera access failed. Allow camera permission or use manual input."
+      );
+    }
+  }
+
+  function stopScanner() {
+    controlsRef.current?.stop();
+    controlsRef.current = null;
+    setIsCameraStarted(false);
+  }
 
   async function searchProduct(code = barcode) {
     if (!code.trim()) return;
@@ -140,12 +156,33 @@ export default function ScanPage() {
 
           <div className="absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1 text-xs font-bold text-white">
             <ScanLine size={14} className="mr-1 inline" />
-            Scanning...
+            {isCameraStarted ? "Scanning..." : "Camera stopped"}
           </div>
         </div>
 
+        <div className="p-4">
+          {!isCameraStarted ? (
+            <button
+              onClick={startScanner}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-400 py-4 font-black text-slate-950"
+            >
+              <Camera size={20} />
+              Start camera
+            </button>
+          ) : (
+            <button
+              onClick={stopScanner}
+              className="w-full rounded-2xl border border-slate-700 py-4 font-black text-slate-300"
+            >
+              Stop camera
+            </button>
+          )}
+        </div>
+
         {cameraError && (
-          <p className="p-4 text-sm font-bold text-red-400">{cameraError}</p>
+          <p className="px-4 pb-4 text-sm font-bold text-red-400">
+            {cameraError}
+          </p>
         )}
       </section>
 
