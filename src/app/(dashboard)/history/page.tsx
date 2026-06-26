@@ -1,8 +1,10 @@
 import type { ScanLog } from "@/types";
+import { getBaseUrl } from "@/lib/base-url";
+
 
 async function getHistory() {
-  const response = await fetch("http://localhost:3000/api/history", {
-    cache: "no-store",
+  const response = await fetch(`${getBaseUrl()}/api/history`, {
+  cache: "no-store",
   });
 
   if (!response.ok) {

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { AlertTriangle, Boxes, ScanLine, Activity } from "lucide-react";
 import type { DashboardData } from "@/types";
+import { getBaseUrl } from "@/lib/base-url";
 
 async function getDashboard() {
-  const response = await fetch("http://localhost:3000/api/dashboard", {
+  const response = await fetch(`${getBaseUrl()}/api/dashboard`, {
     cache: "no-store",
   });
 

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Plus, Search } from "lucide-react";
 import type { Product } from "@/types";
+import { getBaseUrl } from "@/lib/base-url";
 
 async function getProducts() {
-  const response = await fetch("http://localhost:3000/api/products", {
-    cache: "no-store",
-  });
+  const response = await fetch(`${getBaseUrl()}/api/products`, {
+  cache: "no-store",
+});
 
   if (!response.ok) {
     throw new Error("Failed to load products");
