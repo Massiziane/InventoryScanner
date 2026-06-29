@@ -1,17 +1,23 @@
+import EmptyState from "@/components/ui/EmptyState";
+import GlassCard from "@/components/ui/GlassCard";
+import PageHeader from "@/components/ui/PageHeader";
+import PageShell from "@/components/ui/PageShell";
+
 export default function SettingsPage() {
   return (
-    <div className="space-y-5">
-      <header>
-        <p className="text-sm font-semibold text-emerald-400">Settings</p>
-        <h1 className="text-3xl font-black">App settings</h1>
-      </header>
+    <PageShell>
+      <PageHeader
+        eyebrow="Settings"
+        title="App Settings"
+        description="Customize your ScanApp experience and manage future application preferences."
+      />
 
-      <section className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
-        <p className="text-sm text-slate-400">
-          Settings will be added later. For now, this page is part of the MVP
-          navigation.
-        </p>
-      </section>
-    </div>
+      <GlassCard className="p-6">
+        <EmptyState
+          title="Coming Soon"
+          description="Settings will be available in a future update. This page is included in the MVP to establish the application's navigation and overall structure."
+        />
+      </GlassCard>
+    </PageShell>
   );
 }

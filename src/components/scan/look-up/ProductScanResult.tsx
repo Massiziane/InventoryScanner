@@ -1,5 +1,6 @@
 "use client";
 
+import { MapPin, PackageCheck, Plus, Tag, TrendingDown } from "lucide-react";
 import type { Product, ScanAction } from "@/types";
 
 type ProductScanResultProps = {
@@ -16,29 +17,52 @@ export default function ProductScanResult({
   if (!product) return null;
 
   return (
-    <section className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
-      <p className="text-sm font-bold text-emerald-400">Product found</p>
+    <section className="rounded-3xl border border-cyan-400/10 bg-slate-950 p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]">
+      <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
+        Product Found
+      </p>
 
-      <h2 className="mt-2 text-2xl font-black">{product.name}</h2>
+      <h2 className="mt-3 text-2xl font-black tracking-tight text-white">
+        {product.name}
+      </h2>
 
-      <p className="mt-1 text-sm text-slate-400">
+      <p className="mt-1 break-words text-sm text-slate-500">
         {product.sku ?? "No SKU"} · {product.barcode}
       </p>
 
       <div className="mt-5 grid grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-slate-950 p-4">
-          <p className="text-xs text-slate-400">Price</p>
-          <p className="text-xl font-black">${product.price}</p>
+        <div className="rounded-2xl border border-cyan-400/10 bg-slate-900/70 p-4">
+          <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
+            <Tag size={18} />
+          </div>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+            Price
+          </p>
+          <p className="mt-1 text-xl font-black text-white">
+            ${product.price}
+          </p>
         </div>
 
-        <div className="rounded-2xl bg-slate-950 p-4">
-          <p className="text-xs text-slate-400">Stock</p>
-          <p className="text-xl font-black">{product.stock}</p>
+        <div className="rounded-2xl border border-cyan-400/10 bg-slate-900/70 p-4">
+          <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
+            <PackageCheck size={18} />
+          </div>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+            Stock
+          </p>
+          <p className="mt-1 text-xl font-black text-white">
+            {product.stock}
+          </p>
         </div>
 
-        <div className="col-span-2 rounded-2xl bg-slate-950 p-4">
-          <p className="text-xs text-slate-400">Location</p>
-          <p className="text-xl font-black">
+        <div className="col-span-2 rounded-2xl border border-cyan-400/10 bg-slate-900/70 p-4">
+          <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
+            <MapPin size={18} />
+          </div>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+            Location
+          </p>
+          <p className="mt-1 break-words text-xl font-black text-white">
             {product.location ?? "No location set"}
           </p>
         </div>
@@ -48,17 +72,19 @@ export default function ProductScanResult({
         <button
           onClick={() => onApplyScan("ADD_STOCK")}
           disabled={isLoading}
-          className="rounded-2xl bg-emerald-400 py-4 font-black text-slate-950 disabled:opacity-60"
+          className="flex items-center justify-center gap-2 rounded-2xl bg-cyan-300 py-4 font-black text-slate-950 shadow-[0_0_22px_rgba(34,211,238,0.22)] transition hover:bg-cyan-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          + Add 1
+          <Plus size={18} />
+          Add 1
         </button>
 
         <button
           onClick={() => onApplyScan("SALE")}
           disabled={isLoading}
-          className="rounded-2xl bg-red-500 py-4 font-black text-white disabled:opacity-60"
+          className="flex items-center justify-center gap-2 rounded-2xl border border-red-400/30 bg-red-500/15 py-4 font-black text-red-300 transition hover:bg-red-500/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          - Sell 1
+          <TrendingDown size={18} />
+          Sell 1
         </button>
       </div>
     </section>

@@ -1,36 +1,32 @@
-// src/app/scan/page.tsx
-import Link from "next/link";
+import ActionCard from "@/components/ui/ActionCard";
+import PageHeader from "@/components/ui/PageHeader";
+import PageShell from "@/components/ui/PageShell";
 import { PackagePlus, Search } from "lucide-react";
 
 export default function ScanPage() {
   return (
-    <div className="space-y-5">
-      <header>
-        <p className="text-sm font-semibold text-emerald-400">Scanner</p>
-        <h1 className="text-3xl font-black">Choose action</h1>
-      </header>
+    <PageShell>
+      <PageHeader
+        eyebrow="Scanner"
+        title="Choose Action"
+        description="Scan an existing product or register a new one. Fast, reliable and optimized for mobile devices."
+      />
 
-      <Link
-        href="/scan/look-up"
-        className="block rounded-3xl border border-slate-800 bg-slate-900 p-5"
-      >
-        <Search className="text-emerald-400" size={32} />
-        <h2 className="mt-4 text-2xl font-black">Look for product</h2>
-        <p className="mt-2 text-sm text-slate-400">
-          Scan a barcode and check stock, price, and location.
-        </p>
-      </Link>
+      <div className="space-y-4">
+        <ActionCard
+          href="/scan/look-up"
+          icon={Search}
+          title="Look for Product"
+          description="Scan a barcode to instantly check stock, location and product information."
+        />
 
-      <Link
-        href="/scan/add-product"
-        className="block rounded-3xl border border-slate-800 bg-slate-900 p-5"
-      >
-        <PackagePlus className="text-emerald-400" size={32} />
-        <h2 className="mt-4 text-2xl font-black">Add product</h2>
-        <p className="mt-2 text-sm text-slate-400">
-          Scan a barcode. If it exists, modify it. If not, create it.
-        </p>
-      </Link>
-    </div>
+        <ActionCard
+          href="/scan/add-product"
+          icon={PackagePlus}
+          title="Add Product"
+          description="Scan a barcode to update an existing product or create a brand new inventory item."
+        />
+      </div>
+    </PageShell>
   );
 }

@@ -16,9 +16,9 @@ export default function BarcodeSearchCard({
   onSearch,
 }: BarcodeSearchCardProps) {
   return (
-    <section className="rounded-3xl border border-slate-800 bg-slate-900 p-4">
-      <label className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-300">
-        <Keyboard size={18} />
+    <section className="rounded-3xl border border-cyan-400/10 bg-slate-950 p-4 shadow-[0_0_30px_rgba(34,211,238,0.04)]">
+      <label className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+        <Keyboard size={17} />
         Barcode
       </label>
 
@@ -27,15 +27,15 @@ export default function BarcodeSearchCard({
           value={barcode}
           onChange={(event) => onBarcodeChange(event.target.value)}
           placeholder="Enter or scan barcode"
-          className="min-w-0 flex-1 rounded-2xl border border-slate-700 bg-slate-950 px-4 py-4 text-white outline-none focus:border-emerald-400"
+          className="min-w-0 flex-1 rounded-2xl border border-cyan-400/10 bg-slate-900/80 px-4 py-4 text-sm font-semibold text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300/60 focus:ring-2 focus:ring-cyan-400/10"
         />
 
         <button
           onClick={onSearch}
           disabled={isLoading}
-          className="rounded-2xl bg-emerald-400 px-4 font-black text-slate-950 disabled:opacity-60"
+          className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-2xl bg-cyan-300 font-black text-slate-950 shadow-[0_0_22px_rgba(34,211,238,0.22)] transition hover:bg-cyan-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <Search size={20} />
+          <Search size={21} />
         </button>
       </div>
     </section>
