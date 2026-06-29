@@ -114,34 +114,43 @@ export default function ScanPage() {
   }
 
   return (
-    <div className="space-y-5">
-      <header>
-        <p className="text-sm font-semibold text-emerald-400">Scanner</p>
-        <h1 className="text-3xl font-black">Scan product</h1>
-      </header>
+    <div className="space-y-6">
+        <header className="rounded-3xl border border-cyan-400/10 bg-slate-950 p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]">
+        <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300">
+            Scanner
+        </p>
 
-      <ScannerCard
+        <h1 className="mt-3 text-4xl font-black tracking-tight text-white">
+            Scan Product
+        </h1>
+
+        <p className="mt-2 text-sm leading-6 text-slate-400">
+            Point your camera at a barcode or enter it manually below.
+        </p>
+        </header>
+
+        <ScannerCard
         videoRef={videoRef}
         isCameraStarted={isCameraStarted}
         cameraError={cameraError}
         onStart={handleStartScanner}
         onStop={handleStopScanner}
-      />
+        />
 
-      <BarcodeSearchCard
+        <BarcodeSearchCard
         barcode={barcode}
         isLoading={isLoading}
         onBarcodeChange={setBarcode}
         onSearch={() => handleSearchProduct()}
-      />
+        />
 
-      <ScanMessage message={message} />
+        <ScanMessage message={message} />
 
-      <ProductScanResult
+        <ProductScanResult
         product={product}
         isLoading={isLoading}
         onApplyScan={handleApplyScan}
-      />
+        />
     </div>
-  );
+    );
 }
