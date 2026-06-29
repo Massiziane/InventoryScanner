@@ -10,7 +10,7 @@ import ProductScanResult from "@/components/scan/look-up/ProductScanResult";
 import { startBarcodeScanner } from "@/utils/scanner";
 import { searchProductByBarcode } from "@/utils/products";
 import { applyProductScan } from "@/utils/scans";
-import { playScanFeedback } from "@/lib/scan-feedback";
+import { playScanFeedback, prepareScanFeedback } from "@/lib/scan-feedback";
 
 export default function ScanPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -34,6 +34,8 @@ export default function ScanPage() {
     if (!videoRef.current) return;
 
     try {
+      prepareScanFeedback();
+
       setCameraError("");
       setMessage("");
 
@@ -105,9 +107,7 @@ export default function ScanPage() {
       setProduct(data.product);
       setMessage("Stock updated successfully.");
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Scan failed"
-      );
+      setMessage(error instanceof Error ? error.message : "Scan failed");
     } finally {
       setIsLoading(false);
     }
