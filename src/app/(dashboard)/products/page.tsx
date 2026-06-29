@@ -1,22 +1,15 @@
 import Link from "next/link";
 import { Plus, Search } from "lucide-react";
-import type { Product } from "@/types";
-import { getBaseUrl } from "@/lib/base-url";
+import { prisma } from "@/lib/prisma";
 
-async function getProducts() {
-  const response = await fetch(`${getBaseUrl()}/api/products`, {
-  cache: "no-store",
-});
-
-  if (!response.ok) {
-    throw new Error("Failed to load products");
-  }
-
-  return response.json() as Promise<Product[]>;
-}
+export const dynamic = "force-dynamic";
 
 export default async function ProductsPage() {
-  const products = await getProducts();
+  const products = await prisma.product.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
   return (
     <div className="space-y-5">
@@ -57,23 +50,30 @@ export default async function ProductsPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="font-black">{product.name}</h2>
+
                   <p className="mt-1 text-xs text-slate-400">
                     {product.barcode}
                   </p>
+
                   <p className="mt-1 text-xs text-slate-500">
                     {product.sku ?? "No SKU"}
+                  </p>
+
+                  <p className="mt-2 text-xs font-semibold text-emerald-400">
+                    📍 {product.location ?? "No location"}
                   </p>
                 </div>
 
                 <div className="text-right">
-                  <p className="font-black">${product.price}</p>
+                  <p className="font-black">${product.price.toString()}</p>
+
                   <p
                     className={`mt-1 text-xs font-bold ${
                       product.stock === 0
                         ? "text-red-400"
                         : product.stock <= 5
-                          ? "text-yellow-400"
-                          : "text-emerald-400"
+                        ? "text-yellow-400"
+                        : "text-emerald-400"
                     }`}
                   >
                     {product.stock} in stock

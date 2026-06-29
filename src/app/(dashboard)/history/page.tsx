@@ -1,20 +1,10 @@
-import type { ScanLog } from "@/types";
-import { getBaseUrl } from "@/lib/base-url";
+import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
 
-async function getHistory() {
-  const response = await fetch(`${getBaseUrl()}/api/history`, {
-  cache: "no-store",
-  });
+type ScanAction = "ADD_STOCK" | "REMOVE_STOCK" | "SALE" | "CHECK";
 
-  if (!response.ok) {
-    throw new Error("Failed to load history");
-  }
-
-  return response.json() as Promise<ScanLog[]>;
-}
-
-function actionLabel(action: ScanLog["action"]) {
+function actionLabel(action: ScanAction) {
   if (action === "ADD_STOCK") return "Added stock";
   if (action === "REMOVE_STOCK") return "Removed stock";
   if (action === "SALE") return "Sale";
@@ -22,7 +12,15 @@ function actionLabel(action: ScanLog["action"]) {
 }
 
 export default async function HistoryPage() {
-  const history = await getHistory();
+  const history = await prisma.scanLog.findMany({
+    take: 100,
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      product: true,
+    },
+  });
 
   return (
     <div className="space-y-5">
@@ -51,7 +49,7 @@ export default async function HistoryPage() {
                     {scan.barcode}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    {new Date(scan.createdAt).toLocaleString()}
+                    {scan.createdAt.toLocaleString()}
                   </p>
                 </div>
 
