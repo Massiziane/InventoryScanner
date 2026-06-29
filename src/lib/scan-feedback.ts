@@ -3,7 +3,7 @@ let scanAudio: HTMLAudioElement | null = null;
 export function prepareScanFeedback() {
   if (typeof window === "undefined") return;
 
-  scanAudio = new Audio("/sounds/scan.mp3");
+  scanAudio = new Audio("/sound/scan.mp3");
   scanAudio.volume = 0.6;
   scanAudio.preload = "auto";
 
