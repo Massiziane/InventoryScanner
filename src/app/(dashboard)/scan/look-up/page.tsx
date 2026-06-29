@@ -1,5 +1,7 @@
 "use client";
 
+import PageHeader from "@/components/ui/PageHeader";
+import PageShell from "@/components/ui/PageShell";
 import { useEffect, useRef, useState } from "react";
 import type { IScannerControls } from "@zxing/browser";
 import type { Product, ScanAction } from "@/types";
@@ -114,43 +116,35 @@ export default function ScanPage() {
   }
 
   return (
-    <div className="space-y-6">
-        <header className="rounded-3xl border border-cyan-400/10 bg-slate-950 p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]">
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300">
-            Scanner
-        </p>
+    <PageShell>
+      <PageHeader
+        eyebrow="Scanner"
+        title="Scan Product"
+        description="Point your camera at a barcode or enter it manually below."
+      />
 
-        <h1 className="mt-3 text-4xl font-black tracking-tight text-white">
-            Scan Product
-        </h1>
-
-        <p className="mt-2 text-sm leading-6 text-slate-400">
-            Point your camera at a barcode or enter it manually below.
-        </p>
-        </header>
-
-        <ScannerCard
+      <ScannerCard
         videoRef={videoRef}
         isCameraStarted={isCameraStarted}
         cameraError={cameraError}
         onStart={handleStartScanner}
         onStop={handleStopScanner}
-        />
+      />
 
-        <BarcodeSearchCard
+      <BarcodeSearchCard
         barcode={barcode}
         isLoading={isLoading}
         onBarcodeChange={setBarcode}
         onSearch={() => handleSearchProduct()}
-        />
+      />
 
-        <ScanMessage message={message} />
+      <ScanMessage message={message} />
 
-        <ProductScanResult
+      <ProductScanResult
         product={product}
         isLoading={isLoading}
         onApplyScan={handleApplyScan}
-        />
-    </div>
-    );
+      />
+    </PageShell>
+  );
 }

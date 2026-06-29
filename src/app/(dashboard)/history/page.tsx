@@ -1,3 +1,7 @@
+import EmptyState from "@/components/ui/EmptyState";
+import GlassCard from "@/components/ui/GlassCard";
+import PageHeader from "@/components/ui/PageHeader";
+import PageShell from "@/components/ui/PageShell";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -23,28 +27,15 @@ export default async function HistoryPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <header className="rounded-3xl border border-cyan-400/10 bg-slate-950 p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]">
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300">
-          Activity
-        </p>
-
-        <h1 className="mt-3 text-4xl font-black tracking-tight text-white">
-          Scan History
-        </h1>
-      </header>
+    <PageShell>
+      <PageHeader eyebrow="Activity" title="Scan History" />
 
       <section className="space-y-3">
         {history.length === 0 ? (
-          <p className="rounded-2xl border border-cyan-400/10 bg-slate-950 p-4 text-sm text-slate-400">
-            No scan history yet.
-          </p>
+          <EmptyState title="No scan history yet." />
         ) : (
           history.map((scan) => (
-            <div
-              key={scan.id}
-              className="rounded-3xl border border-cyan-400/10 bg-slate-950 p-4 shadow-[0_0_25px_rgba(34,211,238,0.04)]"
-            >
+            <GlassCard key={scan.id} className="p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <h2 className="break-words font-black text-white">
@@ -77,10 +68,10 @@ export default async function HistoryPage() {
                   </p>
                 </div>
               </div>
-            </div>
+            </GlassCard>
           ))
         )}
       </section>
-    </div>
+    </PageShell>
   );
 }

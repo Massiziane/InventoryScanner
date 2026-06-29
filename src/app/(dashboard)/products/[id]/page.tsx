@@ -1,3 +1,6 @@
+import EmptyState from "@/components/ui/EmptyState";
+import GlassCard from "@/components/ui/GlassCard";
+import PageShell from "@/components/ui/PageShell";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -28,8 +31,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-return (
-    <div className="space-y-6">
+  return (
+    <PageShell>
       <Link
         href="/products"
         className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-cyan-300"
@@ -38,7 +41,7 @@ return (
         Back to products
       </Link>
 
-      <section className="rounded-3xl border border-cyan-400/10 bg-slate-950 p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]">
+      <GlassCard>
         <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
           {product.sku ?? "No SKU"}
         </p>
@@ -77,16 +80,14 @@ return (
             </p>
           </div>
         </div>
-      </section>
+      </GlassCard>
 
-      <section className="rounded-3xl border border-cyan-400/10 bg-slate-950 p-5 shadow-[0_0_35px_rgba(34,211,238,0.04)]">
+      <GlassCard>
         <h2 className="text-2xl font-black text-white">Recent Scans</h2>
 
         <div className="mt-4 space-y-3">
           {product.scans.length === 0 ? (
-            <p className="rounded-2xl border border-cyan-400/10 bg-slate-900/70 p-4 text-sm text-slate-400">
-              No scans yet.
-            </p>
+            <EmptyState title="No scans yet." />
           ) : (
             product.scans.map((scan) => (
               <div
@@ -107,7 +108,7 @@ return (
             ))
           )}
         </div>
-      </section>
-    </div>
+      </GlassCard>
+    </PageShell>
   );
 }

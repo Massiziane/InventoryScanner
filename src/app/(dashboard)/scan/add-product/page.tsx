@@ -1,5 +1,7 @@
 "use client";
 
+import PageHeader from "@/components/ui/PageHeader";
+import PageShell from "@/components/ui/PageShell";
 import { useEffect, useRef, useState } from "react";
 import type { IScannerControls } from "@zxing/browser";
 import type { Product } from "@/types";
@@ -109,50 +111,41 @@ export default function AddProductScanPage() {
   }
 
   return (
-    <div className="space-y-6">
-        <header className="rounded-3xl border border-cyan-400/10 bg-slate-950 p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]">
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan-300">
-            Inventory
-        </p>
+    <PageShell>
+      <PageHeader
+        eyebrow="Inventory"
+        title="Add Product"
+        description="Scan a barcode to update an existing product or create a new inventory item if it doesn't already exist."
+      />
 
-        <h1 className="mt-3 text-4xl font-black tracking-tight text-white">
-            Add Product
-        </h1>
-
-        <p className="mt-2 text-sm leading-6 text-slate-400">
-            Scan a barcode to update an existing product or create a new inventory
-            item if it doesn't already exist.
-        </p>
-        </header>
-
-        <ScannerCard
+      <ScannerCard
         videoRef={videoRef}
         isCameraStarted={isCameraStarted}
         cameraError={cameraError}
         onStart={handleStartScanner}
         onStop={handleStopScanner}
-        />
+      />
 
-        <BarcodeSearchCard
+      <BarcodeSearchCard
         barcode={barcode}
         isLoading={isLoading}
         onBarcodeChange={setBarcode}
         onSearch={() => handleSearchProduct()}
-        />
+      />
 
-        <ScanMessage message={message} />
+      <ScanMessage message={message} />
 
-        {showForm && (
+      {showForm && (
         <ProductForm
-            mode={product ? "update" : "create"}
-            barcode={barcode}
-            product={product}
-            onSaved={() => {
+          mode={product ? "update" : "create"}
+          barcode={barcode}
+          product={product}
+          onSaved={() => {
             setMessage(product ? "Product modified." : "Product created.");
             resetPage();
-            }}
+          }}
         />
-        )}
-    </div>
-    );
+      )}
+    </PageShell>
+  );
 }
