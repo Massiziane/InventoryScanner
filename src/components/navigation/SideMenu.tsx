@@ -41,7 +41,7 @@ export default function SideMenu() {
             aria-label="Close menu overlay"
           />
 
-          <aside className="absolute left-0 top-0 flex h-full w-72 flex-col border-r border-cyan-400/10 bg-slate-950 shadow-[20px_0_60px_rgba(0,0,0,.6)]">
+          <aside className="absolute left-0 top-0 flex h-screen w-72 flex-col overflow-y-auto border-r border-cyan-400/10 bg-slate-950 shadow-[20px_0_60px_rgba(0,0,0,.6)]">
             <div className="border-b border-cyan-400/10 p-6">
               <div className="flex items-start justify-between">
                 <div>

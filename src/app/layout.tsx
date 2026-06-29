@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import SideMenu from "@/components/navigation/SideMenu";
 import "./globals.css";
@@ -18,6 +18,11 @@ export const metadata: Metadata = {
   description: "Inventory scanner app",
 };
 
+export const viewport: Viewport = {
+  themeColor: "#020617",
+  colorScheme: "dark",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,11 +31,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full bg-slate-950`}
     >
-      <body className="min-h-full bg-slate-950 text-white">
+      <body className="min-h-screen bg-slate-950 text-white antialiased">
         <SideMenu />
-        <main className="mx-auto min-h-screen max-w-md px-4 pb-24 pt-20">
+
+        <main className="mx-auto min-h-screen max-w-md bg-slate-950 px-4 pb-24 pt-20">
           {children}
         </main>
       </body>
