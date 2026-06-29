@@ -20,7 +20,7 @@ export default async function ProductsPage() {
         </div>
 
         <Link
-          href="/products/new"
+          href="/products/add-product"
           className="rounded-2xl bg-emerald-400 p-3 text-slate-950"
         >
           <Plus size={22} />
