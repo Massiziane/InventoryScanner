@@ -3,8 +3,8 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
-  const barcode = searchParams.get("barcode");
-  const query = searchParams.get("q");
+  const barcode = searchParams.get("barcode")?.trim();
+  const query = searchParams.get("q")?.trim();
 
   if (!barcode && !query) {
     return Response.json(
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   }
 
   if (barcode) {
-    const product = await prisma.product.findUnique({
+    const product = await prisma.product.findFirst({
       where: {
         barcode,
       },
