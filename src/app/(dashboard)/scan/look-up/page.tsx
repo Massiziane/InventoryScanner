@@ -10,6 +10,7 @@ import ProductScanResult from "@/components/scan/look-up/ProductScanResult";
 import { startBarcodeScanner } from "@/utils/scanner";
 import { searchProductByBarcode } from "@/utils/products";
 import { applyProductScan } from "@/utils/scans";
+import { playScanFeedback } from "@/lib/scan-feedback";
 
 export default function ScanPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -46,9 +47,7 @@ export default function ScanPage() {
           setBarcode(detectedBarcode);
           setMessage(`Scanned: ${detectedBarcode}`);
 
-          if (navigator.vibrate) {
-            navigator.vibrate(100);
-          }
+          playScanFeedback();
 
           await handleSearchProduct(detectedBarcode);
 

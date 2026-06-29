@@ -5,6 +5,7 @@ import {
   DecodeHintType,
   NotFoundException,
 } from "@zxing/library";
+import { playScanFeedback } from "@/lib/scan-feedback";
 
 export function createBarcodeScanner() {
   const hints = new Map();
@@ -42,7 +43,8 @@ export async function startBarcodeScanner({
       video: {
         facingMode: { ideal: "environment" },
         width: { ideal: 1280 },
-        height: { ideal: 720 },
+        height: { ideal: 720,
+        },
       },
     },
     videoElement,
@@ -52,6 +54,9 @@ export async function startBarcodeScanner({
       }
 
       if (!result) return;
+
+      // Feedback for every successful scan
+      playScanFeedback();
 
       await onBarcodeDetected(result.getText());
     }
