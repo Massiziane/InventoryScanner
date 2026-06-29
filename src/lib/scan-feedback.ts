@@ -20,7 +20,7 @@ export function playScanFeedback() {
   navigator.vibrate?.(120);
 
   if (!scanAudio) {
-    scanAudio = new Audio("/sounds/scan.mp3");
+    scanAudio = new Audio("/sound/scan.mp3");
     scanAudio.volume = 0.6;
   }
 
