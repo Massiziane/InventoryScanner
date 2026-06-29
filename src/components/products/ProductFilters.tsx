@@ -65,7 +65,7 @@ export default function ProductFilters({ products }: ProductFiltersProps) {
             ["all", "All"],
             ["in-stock", "In Stock"],
             ["low-stock", "Low Stock"],
-            ["out-of-stock", "Out of Stock"],
+            ["out-of-stock", "Out"],
           ].map(([value, label]) => (
             <button
               key={value}
