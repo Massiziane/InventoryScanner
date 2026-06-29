@@ -1,4 +1,4 @@
-import { AlertTriangle, Boxes, Activity } from "lucide-react";
+import { AlertTriangle, Activity, Boxes } from "lucide-react";
 import StatCard from "@/components/home/StatCard";
 
 type StatsGridProps = {
@@ -15,7 +15,7 @@ export default function StatsGrid({
   outOfStock,
 }: StatsGridProps) {
   return (
-    <section className="grid grid-cols-2 gap-3">
+    <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
       <StatCard
         icon={<Boxes size={20} />}
         label="Products"
@@ -24,19 +24,19 @@ export default function StatsGrid({
 
       <StatCard
         icon={<Activity size={20} />}
-        label="Total stock"
+        label="Total Stock"
         value={totalStock}
       />
 
       <StatCard
         icon={<AlertTriangle size={20} />}
-        label="Low stock"
+        label="Low Stock"
         value={lowStock}
       />
 
       <StatCard
         icon={<AlertTriangle size={20} />}
-        label="Out of stock"
+        label="Out of Stock"
         value={outOfStock}
         danger
       />
