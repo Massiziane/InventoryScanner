@@ -26,4 +26,5 @@ export function playScanFeedback() {
 
   scanAudio.currentTime = 0;
   scanAudio.play().catch(() => {});
+  console.log("Playing scan sound");
 }
