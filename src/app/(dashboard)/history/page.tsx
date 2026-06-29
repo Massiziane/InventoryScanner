@@ -1,4 +1,3 @@
-import PageHeader from "@/components/ui/PageHeader";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
