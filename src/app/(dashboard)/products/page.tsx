@@ -60,7 +60,7 @@ export default async function ProductsPage() {
                   </p>
 
                   <p className="mt-2 text-xs font-semibold text-emerald-400">
-                    📍 {product.location ?? "No location"}
+                    {product.location ?? "No location"}
                   </p>
                 </div>
 

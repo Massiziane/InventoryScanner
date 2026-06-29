@@ -32,3 +32,8 @@ export type DashboardData = {
   todayScans: number;
   recentScans: ScanLog[];
 };
+
+export type SearchResponse = {
+  found: boolean;
+  product: Product | null;
+};

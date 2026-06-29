@@ -1,21 +1,14 @@
 "use client";
 
-import { BrowserMultiFormatReader } from "@zxing/browser";
-import type { IScannerControls } from "@zxing/browser";
-import {
-  BarcodeFormat,
-  DecodeHintType,
-  NotFoundException,
-} from "@zxing/library";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Keyboard, Search, ScanLine } from "lucide-react";
+import type { IScannerControls } from "@zxing/browser";
 import type { Product } from "@/types";
 import ProductForm from "@/components/products/ProductForm";
-
-type SearchResponse = {
-  found: boolean;
-  product: Product | null;
-};
+import ScannerCard from "@/components/scan/add-product/ScannerCard";
+import BarcodeSearchCard from "@/components/scan/add-product/BarcodeSearchCard";
+import ScanMessage from "@/components/scan/add-product/ScanMessage";
+import { startBarcodeScanner } from "@/utils/scanner";
+import { searchProductByBarcode } from "@/utils/products";
 
 export default function AddProductScanPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -36,45 +29,17 @@ export default function AddProductScanPage() {
     };
   }, []);
 
-  async function startScanner() {
+  async function handleStartScanner() {
+    if (!videoRef.current) return;
+
     try {
       setCameraError("");
       setMessage("");
 
-      const hints = new Map();
-
-      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-        BarcodeFormat.EAN_13,
-        BarcodeFormat.EAN_8,
-        BarcodeFormat.CODE_128,
-        BarcodeFormat.CODE_39,
-        BarcodeFormat.UPC_A,
-        BarcodeFormat.UPC_E,
-        BarcodeFormat.QR_CODE,
-      ]);
-
-      hints.set(DecodeHintType.TRY_HARDER, true);
-
-      const scanner = new BrowserMultiFormatReader(hints);
-
-      controlsRef.current = await scanner.decodeFromConstraints(
-        {
-          video: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-          },
-        },
-        videoRef.current!,
-        async (result, error) => {
-          if (error && !(error instanceof NotFoundException)) {
-            console.error(error);
-          }
-
-          if (!result) return;
-
-          const detectedBarcode = result.getText();
-
+      controlsRef.current = await startBarcodeScanner({
+        videoElement: videoRef.current,
+        onError: console.error,
+        onBarcodeDetected: async (detectedBarcode) => {
           if (detectedBarcode === lastScannedRef.current) return;
 
           lastScannedRef.current = detectedBarcode;
@@ -84,13 +49,13 @@ export default function AddProductScanPage() {
             navigator.vibrate(100);
           }
 
-          await searchProduct(detectedBarcode);
+          await handleSearchProduct(detectedBarcode);
 
           setTimeout(() => {
             lastScannedRef.current = "";
           }, 2500);
-        }
-      );
+        },
+      });
 
       setIsCameraStarted(true);
     } catch (error) {
@@ -102,13 +67,13 @@ export default function AddProductScanPage() {
     }
   }
 
-  function stopScanner() {
+  function handleStopScanner() {
     controlsRef.current?.stop();
     controlsRef.current = null;
     setIsCameraStarted(false);
   }
 
-  async function searchProduct(code = barcode) {
+  async function handleSearchProduct(code = barcode) {
     if (!code.trim()) return;
 
     setIsLoading(true);
@@ -116,30 +81,24 @@ export default function AddProductScanPage() {
     setProduct(null);
     setShowForm(false);
 
-    const response = await fetch(
-      `/api/products/search-product?barcode=${encodeURIComponent(code)}`
-    );
+    const data = await searchProductByBarcode(code);
 
     setIsLoading(false);
 
-    if (!response.ok) {
+    if (!data?.product) {
       setMessage("Product not found. You can create it with this barcode.");
       setShowForm(true);
       return;
     }
 
-    const data = (await response.json()) as SearchResponse;
-
     setProduct(data.product);
     setShowForm(true);
 
-    if (data.product) {
-      setMessage(
-        `Product already exists: ${data.product.stock} in stock${
-          data.product.location ? ` at ${data.product.location}` : ""
-        }.`
-      );
-    }
+    setMessage(
+      `Product already exists: ${data.product.stock} in stock${
+        data.product.location ? ` at ${data.product.location}` : ""
+      }.`
+    );
   }
 
   function resetPage() {
@@ -159,80 +118,22 @@ export default function AddProductScanPage() {
         </p>
       </header>
 
-      <section className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900">
-        <div className="relative aspect-[4/5] bg-black">
-          <video
-            ref={videoRef}
-            className="h-full w-full object-cover"
-            muted
-            playsInline
-          />
+      <ScannerCard
+        videoRef={videoRef}
+        isCameraStarted={isCameraStarted}
+        cameraError={cameraError}
+        onStart={handleStartScanner}
+        onStop={handleStopScanner}
+      />
 
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="h-40 w-64 rounded-2xl border-4 border-emerald-400/80" />
-          </div>
+      <BarcodeSearchCard
+        barcode={barcode}
+        isLoading={isLoading}
+        onBarcodeChange={setBarcode}
+        onSearch={() => handleSearchProduct()}
+      />
 
-          <div className="absolute bottom-3 left-3 rounded-full bg-black/70 px-3 py-1 text-xs font-bold text-white">
-            <ScanLine size={14} className="mr-1 inline" />
-            {isCameraStarted ? "Scanning..." : "Camera stopped"}
-          </div>
-        </div>
-
-        <div className="p-4">
-          {!isCameraStarted ? (
-            <button
-              onClick={startScanner}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-400 py-4 font-black text-slate-950"
-            >
-              <Camera size={20} />
-              Start camera
-            </button>
-          ) : (
-            <button
-              onClick={stopScanner}
-              className="w-full rounded-2xl border border-slate-700 py-4 font-black text-slate-300"
-            >
-              Stop camera
-            </button>
-          )}
-        </div>
-
-        {cameraError && (
-          <p className="px-4 pb-4 text-sm font-bold text-red-400">
-            {cameraError}
-          </p>
-        )}
-      </section>
-
-      <section className="rounded-3xl border border-slate-800 bg-slate-900 p-4">
-        <label className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-300">
-          <Keyboard size={18} />
-          Barcode
-        </label>
-
-        <div className="flex gap-2">
-          <input
-            value={barcode}
-            onChange={(event) => setBarcode(event.target.value)}
-            placeholder="Enter or scan barcode"
-            className="min-w-0 flex-1 rounded-2xl border border-slate-700 bg-slate-950 px-4 py-4 text-white outline-none focus:border-emerald-400"
-          />
-
-          <button
-            onClick={() => searchProduct()}
-            disabled={isLoading}
-            className="rounded-2xl bg-emerald-400 px-4 font-black text-slate-950 disabled:opacity-60"
-          >
-            <Search size={20} />
-          </button>
-        </div>
-      </section>
-
-      {message && (
-        <p className="rounded-2xl border border-slate-800 bg-slate-900 p-4 text-sm font-bold text-slate-300">
-          {message}
-        </p>
-      )}
+      <ScanMessage message={message} />
 
       {showForm && (
         <ProductForm
