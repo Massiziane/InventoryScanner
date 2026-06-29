@@ -249,15 +249,22 @@ export default function ScanPage() {
 
           <div className="mt-5 grid grid-cols-2 gap-3">
             <div className="rounded-2xl bg-slate-950 p-4">
-              <p className="text-xs text-slate-400">Price</p>
-              <p className="text-xl font-black">${product.price}</p>
+                <p className="text-xs text-slate-400">Price</p>
+                <p className="text-xl font-black">${product.price}</p>
             </div>
 
             <div className="rounded-2xl bg-slate-950 p-4">
-              <p className="text-xs text-slate-400">Stock</p>
-              <p className="text-xl font-black">{product.stock}</p>
+                <p className="text-xs text-slate-400">Stock</p>
+                <p className="text-xl font-black">{product.stock}</p>
             </div>
-          </div>
+
+            <div className="col-span-2 rounded-2xl bg-slate-950 p-4">
+                <p className="text-xs text-slate-400">Location</p>
+                <p className="text-xl font-black">
+                {product.location ?? "No location set"}
+                </p>
+            </div>
+            </div>
 
           <div className="mt-5 grid grid-cols-2 gap-3">
             <button
