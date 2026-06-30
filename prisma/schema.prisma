@@ -17,11 +17,11 @@ model Product {
   name        String
   barcode     String   @unique
   sku         String?
-  description String?
   price       Decimal  @db.Decimal(10,2)
   stock       Int      @default(0)
   location    String?
-  imageUrl    String?
+  description String? @db.Text
+  imageUrl     String? @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

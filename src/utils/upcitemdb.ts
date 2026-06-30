@@ -31,7 +31,7 @@ export async function lookupProductFromUpcItemDb(barcode: string) {
 
   return {
     name: item.title ?? "",
-    description: item.description?.slice(0, 1000) ?? "",
+    description: item.description?.slice(0, 100) ?? "",
     imageUrl: item.images?.[0] ?? "",
     brand: item.brand ?? "",
     category: item.category ?? "",
