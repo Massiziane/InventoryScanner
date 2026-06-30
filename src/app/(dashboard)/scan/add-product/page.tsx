@@ -13,6 +13,7 @@ export default function AddProductScanPage() {
     videoRef,
     barcode,
     product,
+    draft,
     message,
     cameraError,
     isLoading,
@@ -55,6 +56,7 @@ export default function AddProductScanPage() {
           mode={product ? "update" : "create"}
           barcode={barcode}
           product={product}
+          draft={draft}
           onSaved={handleProductSaved}
         />
       )}
