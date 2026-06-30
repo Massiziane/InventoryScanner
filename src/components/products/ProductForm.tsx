@@ -82,10 +82,14 @@ export default function ProductForm({
     setIsSaving(false);
 
     if (!response.ok) {
-      const data = await response.json();
-      setError(data.error || "Could not save product");
-      return;
-    }
+  const data = await response.json();
+
+  console.error(data);
+
+  setError(JSON.stringify(data));
+
+  return;
+}
 
     onSaved?.();
   }
