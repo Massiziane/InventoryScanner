@@ -83,7 +83,11 @@ export default function ProductForm({
 
     if (!response.ok) {
       const data = await response.json();
-      setError(data.error || "Could not save product");
+
+      console.error(data);
+
+      setError(JSON.stringify(data));
+
       return;
     }
 
