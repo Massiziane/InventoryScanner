@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import type { Product } from "@/types/index";
+import { useEffect, useState } from "react";
+import type { Product, ProductDraft } from "@/types/index";
 
 type ProductFormProps = {
   mode: "create" | "update";
   barcode: string;
   product?: Product | null;
+  draft?: ProductDraft | null;
   onSaved?: () => void;
 };
 
@@ -14,10 +15,37 @@ export default function ProductForm({
   mode,
   barcode,
   product,
+  draft,
   onSaved,
 }: ProductFormProps) {
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  const [name, setName] = useState(product?.name ?? draft?.name ?? "");
+  const [productBarcode, setProductBarcode] = useState(
+    product?.barcode ?? draft?.barcode ?? barcode
+  );
+  const [sku, setSku] = useState(product?.sku ?? "");
+  const [description, setDescription] = useState(
+    product?.description ?? draft?.description ?? ""
+  );
+  const [price, setPrice] = useState(product?.price?.toString() ?? "0");
+  const [stock, setStock] = useState(product?.stock?.toString() ?? "0");
+  const [location, setLocation] = useState(product?.location ?? "");
+  const [imageUrl, setImageUrl] = useState(
+    product?.imageUrl ?? draft?.imageUrl ?? ""
+  );
+
+  useEffect(() => {
+    setName(product?.name ?? draft?.name ?? "");
+    setProductBarcode(product?.barcode ?? draft?.barcode ?? barcode);
+    setSku(product?.sku ?? "");
+    setDescription(product?.description ?? draft?.description ?? "");
+    setPrice(product?.price?.toString() ?? "0");
+    setStock(product?.stock?.toString() ?? "0");
+    setLocation(product?.location ?? "");
+    setImageUrl(product?.imageUrl ?? draft?.imageUrl ?? "");
+  }, [product, draft, barcode]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,17 +53,15 @@ export default function ProductForm({
     setError("");
     setIsSaving(true);
 
-    const formData = new FormData(event.currentTarget);
-
     const payload = {
-      name: String(formData.get("name") || ""),
-      barcode: String(formData.get("barcode") || ""),
-      sku: String(formData.get("sku") || "") || null,
-      description: String(formData.get("description") || "") || null,
-      price: Number(formData.get("price") || 0),
-      stock: Number(formData.get("stock") || 0),
-      location: String(formData.get("location") || "") || null,
-      imageUrl: null,
+      name,
+      barcode: productBarcode,
+      sku: sku || null,
+      description: description || null,
+      price: Number(price || 0),
+      stock: Number(stock || 0),
+      location: location || null,
+      imageUrl: imageUrl || null,
     };
 
     const url =
@@ -67,23 +93,41 @@ export default function ProductForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-3 rounded-3xl border border-slate-800 bg-slate-900 p-5"
+      className="space-y-3 rounded-3xl border border-cyan-400/10 bg-slate-950 p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]"
     >
-      <Input name="name" label="Product name" defaultValue={product?.name} required />
+      {imageUrl && (
+        <div className="overflow-hidden rounded-2xl border border-cyan-400/10 bg-slate-900">
+          <img
+            src={imageUrl}
+            alt={name || "Product image"}
+            className="h-48 w-full object-contain p-4"
+          />
+        </div>
+      )}
+
+      <Input
+        name="name"
+        label="Product name"
+        value={name}
+        onChange={setName}
+        required
+      />
 
       <Input
         name="barcode"
         label="Barcode"
-        defaultValue={product?.barcode ?? barcode}
+        value={productBarcode}
+        onChange={setProductBarcode}
         required
       />
 
-      <Input name="sku" label="SKU" defaultValue={product?.sku ?? ""} />
+      <Input name="sku" label="SKU" value={sku} onChange={setSku} />
 
       <Input
         name="description"
         label="Description"
-        defaultValue={product?.description ?? ""}
+        value={description}
+        onChange={setDescription}
       />
 
       <Input
@@ -91,7 +135,8 @@ export default function ProductForm({
         label="Price"
         type="number"
         step="0.01"
-        defaultValue={product?.price ?? "0"}
+        value={price}
+        onChange={setPrice}
         required
       />
 
@@ -99,14 +144,23 @@ export default function ProductForm({
         name="stock"
         label="Stock"
         type="number"
-        defaultValue={product?.stock ?? 0}
+        value={stock}
+        onChange={setStock}
         required
       />
 
       <Input
         name="location"
         label="Location / placement"
-        defaultValue={product?.location ?? ""}
+        value={location}
+        onChange={setLocation}
+      />
+
+      <Input
+        name="imageUrl"
+        label="Image URL"
+        value={imageUrl}
+        onChange={setImageUrl}
       />
 
       {error && (
@@ -117,7 +171,7 @@ export default function ProductForm({
 
       <button
         disabled={isSaving}
-        className="w-full rounded-2xl bg-emerald-400 py-4 font-black text-slate-950 disabled:opacity-60"
+        className="w-full rounded-2xl bg-cyan-300 py-4 font-black text-slate-950 disabled:opacity-60"
       >
         {isSaving
           ? "Saving..."
@@ -135,27 +189,31 @@ function Input({
   type = "text",
   required = false,
   step,
-  defaultValue,
+  value,
+  onChange,
 }: {
   label: string;
   name: string;
   type?: string;
   required?: boolean;
   step?: string;
-  defaultValue?: string | number | null;
+  value: string;
+  onChange: (value: string) => void;
 }) {
   return (
     <label className="block">
       <span className="mb-2 block text-sm font-bold text-slate-300">
         {label}
       </span>
+
       <input
         name={name}
         type={type}
         step={step}
         required={required}
-        defaultValue={defaultValue ?? ""}
-        className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-4 outline-none focus:border-emerald-400"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full rounded-2xl border border-cyan-400/10 bg-slate-900 px-4 py-4 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300"
       />
     </label>
   );
