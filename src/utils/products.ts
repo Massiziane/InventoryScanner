@@ -1,6 +1,5 @@
 import { SearchResponse } from "@/types";
 
-
 export async function searchProductByBarcode(
   barcode: string
 ): Promise<SearchResponse | null> {

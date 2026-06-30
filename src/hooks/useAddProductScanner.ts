@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { IScannerControls } from "@zxing/browser";
-import type { Product } from "@/types";
+import type { Product, ProductDraft } from "@/types";
 import { startBarcodeScanner } from "@/utils/scanner";
 import { searchProductByBarcode } from "@/utils/products";
 
@@ -13,6 +13,7 @@ export function useAddProductScanner() {
 
   const [barcode, setBarcode] = useState("");
   const [product, setProduct] = useState<Product | null>(null);
+  const [draft, setDraft] = useState<ProductDraft | null>(null);
   const [message, setMessage] = useState("");
   const [cameraError, setCameraError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -70,36 +71,75 @@ export function useAddProductScanner() {
   }
 
   async function handleSearchProduct(code = barcode) {
-    if (!code.trim()) return;
+    const normalizedCode = code.trim();
+
+    if (!normalizedCode) return;
 
     setIsLoading(true);
     setMessage("");
     setProduct(null);
+    setDraft(null);
     setShowForm(false);
 
-    const data = await searchProductByBarcode(code);
+    const data = await searchProductByBarcode(normalizedCode);
 
     setIsLoading(false);
 
-    if (!data?.product) {
-      setMessage("Product not found. You can create it with this barcode.");
+    if (!data) {
+      setDraft({
+        barcode: normalizedCode,
+        name: "",
+        description: "",
+        imageUrl: "",
+      });
+      setMessage("Product search failed. You can create it manually.");
       setShowForm(true);
       return;
     }
 
-    setProduct(data.product);
-    setShowForm(true);
+    if (data.source === "local" && data.product) {
+      setProduct(data.product);
+      setDraft(null);
+      setShowForm(true);
 
-    setMessage(
-      `Product already exists: ${data.product.stock} in stock${
-        data.product.location ? ` at ${data.product.location}` : ""
-      }.`
-    );
+      setMessage(
+        `Product already exists: ${data.product.stock} in stock${
+          data.product.location ? ` at ${data.product.location}` : ""
+        }.`
+      );
+
+      return;
+    }
+
+    if (data.source === "upcitemdb" && data.externalProduct) {
+      setProduct(null);
+      setDraft({
+        barcode: normalizedCode,
+        name: data.externalProduct.name,
+        description: data.externalProduct.description,
+        imageUrl: data.externalProduct.imageUrl,
+      });
+      setShowForm(true);
+      setMessage("Product found online. Review and save it.");
+
+      return;
+    }
+
+    setProduct(null);
+    setDraft({
+      barcode: normalizedCode,
+      name: "",
+      description: "",
+      imageUrl: "",
+    });
+    setShowForm(true);
+    setMessage("Product not found. You can create it manually.");
   }
 
   function resetPage() {
     setBarcode("");
     setProduct(null);
+    setDraft(null);
     setMessage("");
     setShowForm(false);
   }
@@ -113,6 +153,7 @@ export function useAddProductScanner() {
     videoRef,
     barcode,
     product,
+    draft,
     message,
     cameraError,
     isLoading,

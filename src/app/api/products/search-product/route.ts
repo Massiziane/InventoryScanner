@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { lookupProductFromUpcItemDb } from "@/utils/upcitemdb";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -12,9 +13,21 @@ export async function GET(request: Request) {
     where: { barcode },
   });
 
-  if (!product) {
-    return Response.json({ found: false, product: null }, { status: 404 });
+  if (product) {
+    return Response.json({
+      found: true,
+      source: "local",
+      product,
+      externalProduct: null,
+    });
   }
 
-  return Response.json({ found: true, product });
+  const externalProduct = await lookupProductFromUpcItemDb(barcode);
+
+  return Response.json({
+    found: false,
+    source: externalProduct ? "upcitemdb" : null,
+    product: null,
+    externalProduct,
+  });
 }

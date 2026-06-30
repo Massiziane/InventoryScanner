@@ -33,7 +33,25 @@ export type DashboardData = {
   recentScans: ScanLog[];
 };
 
+
+export type ExternalProduct = {
+  name: string;
+  description: string;
+  imageUrl: string;
+  brand?: string;
+  category?: string;
+};
+
+export type ProductDraft = {
+  barcode: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+};
+
 export type SearchResponse = {
   found: boolean;
+  source: "local" | "upcitemdb" | null;
   product: Product | null;
+  externalProduct: ExternalProduct | null;
 };
