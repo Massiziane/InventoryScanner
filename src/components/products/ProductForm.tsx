@@ -56,7 +56,7 @@ export default function ProductForm({
     const payload = {
       name,
       barcode: productBarcode,
-      sku: sku || null,
+      ...(mode === "update" ? { sku: sku || null } : {}),
       description: description || null,
       price: Number(price || 0),
       stock: Number(stock || 0),
@@ -125,7 +125,9 @@ export default function ProductForm({
         required
       />
 
-      <Input name="sku" label="SKU" value={sku} onChange={setSku} />
+      {mode === "update" && (
+        <Input name="sku" label="SKU" value={sku} onChange={setSku} />
+      )}
 
       <Input
         name="description"
