@@ -46,7 +46,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           {product.sku ?? "No SKU"}
         </p>
 
-        <h1 className="mt-3 break-words text-4xl font-black tracking-tight text-white">
+        <h1 className="mt-3 break-words text-4xl font-black tracking-tight text-[var(--app-text)]">
           {product.name}
         </h1>
 
@@ -62,20 +62,20 @@ export default async function ProductPage({ params }: ProductPageProps) {
         )}
 
         <div className="mt-6 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-cyan-400/10 bg-slate-900/70 p-4">
+          <div className="rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]/70 p-4">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
               Price
             </p>
-            <p className="mt-1 text-2xl font-black text-white">
+            <p className="mt-1 text-2xl font-black text-[var(--app-text)]">
               ${product.price.toString()}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-cyan-400/10 bg-slate-900/70 p-4">
+          <div className="rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]/70 p-4">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
               Stock
             </p>
-            <p className="mt-1 text-2xl font-black text-white">
+            <p className="mt-1 text-2xl font-black text-[var(--app-text)]">
               {product.stock}
             </p>
           </div>
@@ -83,7 +83,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       </GlassCard>
 
       <GlassCard>
-        <h2 className="text-2xl font-black text-white">Recent Scans</h2>
+        <h2 className="text-2xl font-black text-[var(--app-text)]">Recent Scans</h2>
 
         <div className="mt-4 space-y-3">
           {product.scans.length === 0 ? (
@@ -92,10 +92,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
             product.scans.map((scan) => (
               <div
                 key={scan.id}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-cyan-400/10 bg-slate-900/70 p-4"
+                className="flex items-center justify-between gap-4 rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]/70 p-4"
               >
                 <div className="min-w-0">
-                  <p className="font-black text-white">{scan.action}</p>
+                  <p className="font-black text-[var(--app-text)]">{scan.action}</p>
                   <p className="mt-1 text-xs text-slate-500">
                     {scan.createdAt.toLocaleString()}
                   </p>

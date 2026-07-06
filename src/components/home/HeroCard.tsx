@@ -3,9 +3,22 @@ import { ArrowRight, Boxes, ScanLine } from "lucide-react";
 
 export default function HeroCard() {
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-cyan-400/10 bg-slate-950 p-6 shadow-[0_0_45px_rgba(34,211,238,0.08)]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_35%),linear-gradient(to_bottom,rgba(15,23,42,0.4),rgba(2,6,23,0.95))]" />
-      <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(to_right,rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.08)_1px,transparent_1px)] [background-size:38px_38px]" />
+    <section className="relative overflow-hidden rounded-3xl border border-cyan-400/10 bg-[var(--app-bg)] p-6 shadow-[0_0_45px_rgba(34,211,238,0.08)]">
+      <div
+          className="absolute inset-0"
+          style={{ background: "var(--hero-gradient)" }}
+        />
+
+      <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right,var(--hero-grid) 1px,transparent 1px),
+              linear-gradient(to bottom,var(--hero-grid) 1px,transparent 1px)
+            `,
+            backgroundSize: "38px 38px",
+          }}
+        />
 
       <div className="relative">
         <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,0.15)]">
@@ -16,11 +29,11 @@ export default function HeroCard() {
           ScanApp
         </p>
 
-        <h1 className="mt-3 text-4xl font-black tracking-tight text-white">
+        <h1 className="mt-3 text-4xl font-black tracking-tight text-[var(--app-text)]">
           Inventory scanner
         </h1>
 
-        <p className="mt-3 max-w-md text-sm leading-6 text-slate-400">
+        <p className="mt-3 max-w-md text-sm leading-6 text-[var(--app-muted)]">
           Manage products, scan barcodes, and update stock from your phone.
         </p>
 

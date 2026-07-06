@@ -97,10 +97,10 @@ export default function ProductForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-3 rounded-3xl border border-cyan-400/10 bg-slate-950 p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]"
+      className="space-y-3 rounded-3xl border border-cyan-400/10 bg-[var(--app-bg)] p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]"
     >
       {imageUrl && (
-        <div className="overflow-hidden rounded-2xl border border-cyan-400/10 bg-slate-900">
+        <div className="overflow-hidden rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]">
           <img
             src={imageUrl}
             alt={name || "Product image"}
@@ -219,7 +219,7 @@ function Input({
         required={required}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="w-full rounded-2xl border border-cyan-400/10 bg-slate-900 px-4 py-4 text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-300"
+        className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)] px-4 py-4 text-[var(--app-text)] outline-none transition placeholder:text-slate-600 focus:border-cyan-300"
       />
     </label>
   );

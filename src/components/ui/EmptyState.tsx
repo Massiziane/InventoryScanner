@@ -5,7 +5,7 @@ type EmptyStateProps = {
 
 export default function EmptyState({ title, description }: EmptyStateProps) {
   return (
-    <div className="rounded-2xl border border-cyan-400/10 bg-slate-950 p-6 text-center">
+    <div className="rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)] p-6 text-center">
       <p className="font-semibold text-slate-300">{title}</p>
 
       {description && (

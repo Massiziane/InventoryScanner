@@ -1,26 +1,101 @@
 @import "tailwindcss";
 
+/* ---------- LIGHT THEME ---------- */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #020617;
+
+  --app-bg: #f8fafc;
+  --app-panel: #ffffff;
+  --app-panel-soft: #f1f5f9;
+
+  --app-border: rgba(8, 145, 178, 0.18);
+
+  --app-text: #020617;
+  --app-muted: #64748b;
+  --app-icon: #64748b;
+
+  --app-accent: #06b6d4;
+  --app-accent-soft: rgba(6, 182, 212, 0.1);
+  --app-accent-border: rgba(6, 182, 212, 0.2);
+
+  --hero-gradient:
+    radial-gradient(
+      circle at top right,
+      rgba(6, 182, 212, 0.08),
+      transparent 35%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.95),
+      rgba(241, 245, 249, 1)
+    );
+
+  --hero-grid: rgba(71, 85, 105, 0.08);
+
+  --hero-glow: rgba(6, 182, 212, 0.15);
 }
+
+/* ---------- DARK THEME ---------- */
+
+.dark {
+  --background: #050b12;
+  --foreground: #ffffff;
+
+  --app-bg: #050b12;
+  --app-panel: #08131d;
+  --app-panel-soft: #0f172a;
+
+  --app-border: rgba(34, 211, 238, 0.1);
+
+  --app-text: #ffffff;
+  --app-muted: #94a3b8;
+  --app-icon: #94a3b8;
+
+  --app-accent: #22d3ee;
+  --app-accent-soft: rgba(34, 211, 238, 0.1);
+  --app-accent-border: rgba(34, 211, 238, 0.2);
+
+  --hero-gradient:
+    radial-gradient(
+      circle at top right,
+      rgba(34, 211, 238, 0.18),
+      transparent 35%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(15, 23, 42, 0.4),
+      rgba(2, 6, 23, 0.95)
+    );
+
+  --hero-grid: rgba(148, 163, 184, 0.08);
+
+  --hero-glow: rgba(34, 211, 238, 0.25);
+}
+
+/* ---------- TAILWIND ---------- */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ---------- GLOBAL ---------- */
+
+html,
+body {
+  min-height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--app-bg);
+  color: var(--app-text);
   font-family: Arial, Helvetica, sans-serif;
+  transition:
+    background-color 250ms ease,
+    color 250ms ease;
 }

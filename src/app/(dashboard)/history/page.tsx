@@ -38,7 +38,7 @@ export default async function HistoryPage() {
             <GlassCard key={scan.id} className="p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <h2 className="break-words font-black text-white">
+                  <h2 className="break-words font-black text-[var(--app-text)]">
                     {scan.product?.name ?? "Unknown product"}
                   </h2>
 

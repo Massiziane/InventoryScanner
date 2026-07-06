@@ -35,14 +35,14 @@ const actionConfig = {
 
 export default function RecentScans({ scans }: RecentScansProps) {
   return (
-    <section className="rounded-3xl border border-cyan-400/10 bg-slate-950 p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]">
+    <section className="rounded-3xl border border-cyan-400/10 bg-[var(--app-bg)] p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]">
       <div className="mb-5 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
             Activity
           </p>
 
-          <h2 className="mt-1 text-2xl font-black text-white">Recent Scans</h2>
+          <h2 className="mt-1 text-2xl font-black text-[var(--app-text)]">Recent Scans</h2>
         </div>
 
         <Link
@@ -56,7 +56,7 @@ export default function RecentScans({ scans }: RecentScansProps) {
 
       <div className="space-y-3">
         {scans.length === 0 ? (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-center">
+          <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-panel)]/60 p-8 text-center">
             <Barcode className="mx-auto mb-3 text-slate-600" size={32} />
 
             <p className="font-semibold text-slate-300">No scans yet</p>
@@ -73,7 +73,7 @@ export default function RecentScans({ scans }: RecentScansProps) {
             return (
               <div
                 key={scan.id}
-                className="group flex items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 transition hover:border-cyan-400/30 hover:bg-slate-900"
+                className="group flex items-center justify-between gap-3 rounded-2xl border border-[var(--app-border)] bg-[var(--app-panel)]/70 p-4 transition hover:border-cyan-400/30 hover:bg-[var(--app-panel)]"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-400/10 bg-cyan-400/10 text-cyan-300">
@@ -81,7 +81,7 @@ export default function RecentScans({ scans }: RecentScansProps) {
                   </div>
 
                   <div className="min-w-0">
-                    <p className="truncate font-bold text-white">
+                    <p className="truncate font-bold text-[var(--app-text)]">
                       {scan.product?.name ?? "Unknown product"}
                     </p>
 

@@ -49,14 +49,14 @@ export default function ProductFilters({ products }: ProductFiltersProps) {
   return (
     <>
       <div className="space-y-3">
-        <div className="flex items-center gap-3 rounded-2xl border border-cyan-400/10 bg-slate-950 px-4 py-4 shadow-[0_0_20px_rgba(34,211,238,.03)]">
+        <div className="flex items-center gap-3 rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)] px-4 py-4 shadow-[0_0_20px_rgba(34,211,238,.03)]">
           <Search size={18} className="text-cyan-300" />
 
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search product..."
-            className="w-full bg-transparent text-sm font-medium text-white outline-none placeholder:text-slate-600"
+            className="w-full bg-transparent text-sm font-medium text-[var(--app-text)] outline-none placeholder:text-slate-600"
           />
         </div>
 
@@ -73,7 +73,7 @@ export default function ProductFilters({ products }: ProductFiltersProps) {
               className={`shrink-0 rounded-full border px-4 py-2 text-xs font-black uppercase tracking-wide transition ${
                 filter === value
                   ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-300"
-                  : "border-cyan-400/10 bg-slate-950 text-slate-500"
+                  : "border-cyan-400/10 bg-[var(--app-bg)] text-slate-500"
               }`}
             >
               {label}
@@ -94,7 +94,7 @@ export default function ProductFilters({ products }: ProductFiltersProps) {
               <GlassCard className="block p-5 transition hover:-translate-y-0.5 hover:border-cyan-400/25">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <h2 className="truncate text-lg font-black text-white">
+                    <h2 className="truncate text-lg font-black text-[var(--app-text)]">
                       {product.name}
                     </h2>
 
@@ -112,7 +112,7 @@ export default function ProductFilters({ products }: ProductFiltersProps) {
                   </div>
 
                   <div className="shrink-0 text-right">
-                    <p className="text-xl font-black text-white">
+                    <p className="text-xl font-black text-[var(--app-text)]">
                       ${product.price}
                     </p>
 

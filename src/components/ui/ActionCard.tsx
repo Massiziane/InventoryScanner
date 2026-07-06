@@ -17,7 +17,7 @@ export default function ActionCard({
 }: ActionCardProps) {
   return (
     <Link href={href}>
-      <section className="group relative block overflow-hidden rounded-3xl border border-cyan-400/10 bg-slate-950 p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/30 hover:shadow-[0_0_30px_rgba(34,211,238,0.08)]">
+      <section className="group relative block overflow-hidden rounded-3xl border border-cyan-400/10 bg-[var(--app-bg)] p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/30 hover:shadow-[0_0_30px_rgba(34,211,238,0.08)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_45%)] opacity-0 transition-opacity group-hover:opacity-100" />
 
         <div className="relative flex items-start justify-between gap-4">
@@ -26,9 +26,9 @@ export default function ActionCard({
               <Icon size={28} />
             </div>
 
-            <h2 className="mt-5 text-2xl font-black text-white">{title}</h2>
+            <h2 className="mt-5 text-2xl font-black text-[var(--app-text)]">{title}</h2>
 
-            <p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">
+            <p className="mt-2 max-w-sm text-sm leading-6 text-[var(--app-muted)]">
               {description}
             </p>
           </div>

@@ -19,7 +19,7 @@ export default function ScannerCard({
   onStop,
 }: ScannerCardProps) {
   return (
-    <section className="overflow-hidden rounded-3xl border border-cyan-400/10 bg-slate-950 shadow-[0_0_40px_rgba(34,211,238,0.06)]">
+    <section className="overflow-hidden rounded-3xl border border-cyan-400/10 bg-[var(--app-bg)] shadow-[0_0_40px_rgba(34,211,238,0.06)]">
       <div className="relative aspect-[4/5] overflow-hidden bg-black">
         <video
           ref={videoRef}
@@ -49,13 +49,13 @@ export default function ScannerCard({
         </div>
 
         {/* Status */}
-        <div className="absolute bottom-4 left-4 rounded-full border border-cyan-400/20 bg-slate-950/80 px-3 py-2 backdrop-blur">
+        <div className="absolute bottom-4 left-4 rounded-full border border-cyan-400/20 bg-[var(--app-bg)]/80 px-3 py-2 backdrop-blur">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide">
             <ScanLine size={14} className="text-cyan-300" />
 
             <span
               className={
-                isCameraStarted ? "text-cyan-300" : "text-slate-400"
+                isCameraStarted ? "text-cyan-300" : "text-[var(--app-muted)]"
               }
             >
               {isCameraStarted ? "Scanning" : "Camera Offline"}
@@ -76,7 +76,7 @@ export default function ScannerCard({
         ) : (
           <button
             onClick={onStop}
-            className="w-full rounded-2xl border border-cyan-400/20 bg-slate-900 py-4 font-black text-slate-300 transition hover:border-cyan-400/40 hover:text-white"
+            className="w-full rounded-2xl border border-cyan-400/20 bg-[var(--app-panel)] py-4 font-black text-slate-300 transition hover:border-cyan-400/40 hover:text-[var(--app-text)]"
           >
             Stop Camera
           </button>

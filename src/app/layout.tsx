@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import SideMenu from "@/components/navigation/SideMenu";
+import FloatingThemeToggle from "@/components/theme/FloatingThemeToggle";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,12 +32,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full bg-slate-950`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full bg-[var(--app-bg)]`}
     >
-      <body className="min-h-screen bg-slate-950 text-white antialiased">
+      <body className="min-h-screen bg-[var(--app-bg)] text-[var(--app-text)] antialiased">
         <SideMenu />
+        <FloatingThemeToggle />
 
-        <main className="mx-auto min-h-screen max-w-md bg-slate-950 px-4 pb-24 pt-20">
+        <main className="mx-auto min-h-screen max-w-md bg-[var(--app-bg)] px-4 pb-24 pt-20">
           {children}
         </main>
       </body>

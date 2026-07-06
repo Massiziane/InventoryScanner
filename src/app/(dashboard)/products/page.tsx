@@ -32,7 +32,7 @@ export default async function ProductsPage() {
             Inventory
           </p>
 
-          <h1 className="mt-3 text-4xl font-black tracking-tight text-white">
+          <h1 className="mt-3 text-4xl font-black tracking-tight text-[var(--app-text)]">
             Products
           </h1>
         </div>

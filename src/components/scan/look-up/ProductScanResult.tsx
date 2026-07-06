@@ -17,12 +17,12 @@ export default function ProductScanResult({
   if (!product) return null;
 
   return (
-    <section className="rounded-3xl border border-cyan-400/10 bg-slate-950 p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]">
+    <section className="rounded-3xl border border-cyan-400/10 bg-[var(--app-bg)] p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]">
       <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
         Product Found
       </p>
 
-      <h2 className="mt-3 text-2xl font-black tracking-tight text-white">
+      <h2 className="mt-3 text-2xl font-black tracking-tight text-[var(--app-text)]">
         {product.name}
       </h2>
 
@@ -31,38 +31,38 @@ export default function ProductScanResult({
       </p>
 
       <div className="mt-5 grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-cyan-400/10 bg-slate-900/70 p-4">
+        <div className="rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]/70 p-4">
           <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
             <Tag size={18} />
           </div>
           <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
             Price
           </p>
-          <p className="mt-1 text-xl font-black text-white">
+          <p className="mt-1 text-xl font-black text-[var(--app-text)]">
             ${product.price}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-cyan-400/10 bg-slate-900/70 p-4">
+        <div className="rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]/70 p-4">
           <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
             <PackageCheck size={18} />
           </div>
           <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
             Stock
           </p>
-          <p className="mt-1 text-xl font-black text-white">
+          <p className="mt-1 text-xl font-black text-[var(--app-text)]">
             {product.stock}
           </p>
         </div>
 
-        <div className="col-span-2 rounded-2xl border border-cyan-400/10 bg-slate-900/70 p-4">
+        <div className="col-span-2 rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]/70 p-4">
           <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
             <MapPin size={18} />
           </div>
           <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
             Location
           </p>
-          <p className="mt-1 break-words text-xl font-black text-white">
+          <p className="mt-1 break-words text-xl font-black text-[var(--app-text)]">
             {product.location ?? "No location set"}
           </p>
         </div>

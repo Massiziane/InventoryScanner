@@ -14,7 +14,7 @@ export default function StatCard({
   danger = false,
 }: StatCardProps) {
   return (
-    <div className="rounded-2xl border border-cyan-400/10 bg-slate-950/90 p-4 shadow-[0_0_25px_rgba(34,211,238,0.04)] transition hover:border-cyan-400/25">
+    <div className="rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)]/90 p-4 shadow-[0_0_25px_rgba(34,211,238,0.04)] transition hover:border-cyan-400/25">
       <div
         className={`flex h-10 w-10 items-center justify-center rounded-xl border ${
           danger
@@ -25,7 +25,7 @@ export default function StatCard({
         {icon}
       </div>
 
-      <p className="mt-4 text-2xl font-black tracking-tight text-white">
+      <p className="mt-4 text-2xl font-black tracking-tight text-[var(--app-text)]">
         {value}
       </p>
 
