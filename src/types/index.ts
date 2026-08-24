@@ -55,3 +55,27 @@ export type SearchResponse = {
   product: Product | null;
   externalProduct: ExternalProduct | null;
 };
+
+export type Lot = {
+  id: string;
+  name: string;
+  location: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: LotItem[];
+};
+
+export type LotItem = {
+  id: string;
+  lotId: string;
+  productId: string;
+  quantity: number;
+  createdAt: string;
+  updatedAt: string;
+  product: Product;
+};
+
+export type PendingLotItem = {
+  product: Product;
+  quantity: number;
+};

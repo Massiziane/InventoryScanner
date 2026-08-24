@@ -8,7 +8,7 @@ type ProductFormProps = {
   barcode: string;
   product?: Product | null;
   draft?: ProductDraft | null;
-  onSaved?: () => void;
+  onSaved?: (product: Product) => void;
 };
 
 export default function ProductForm({
@@ -91,7 +91,9 @@ export default function ProductForm({
       return;
     }
 
-    onSaved?.();
+    const savedProduct: Product = await response.json();
+
+    onSaved?.(savedProduct);
   }
 
   return (

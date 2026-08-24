@@ -1,7 +1,7 @@
 import ActionCard from "@/components/ui/ActionCard";
 import PageHeader from "@/components/ui/PageHeader";
 import PageShell from "@/components/ui/PageShell";
-import { PackagePlus, Search } from "lucide-react";
+import { Boxes, PackagePlus, Search } from "lucide-react";
 
 export default function ScanPage() {
   return (
@@ -9,7 +9,7 @@ export default function ScanPage() {
       <PageHeader
         eyebrow="Scanner"
         title="Choose Action"
-        description="Scan an existing product or register a new one. Fast, reliable and optimized for mobile devices."
+        description="Scan an existing product, register a new one or build an inventory lot."
       />
 
       <div className="space-y-4">
@@ -25,6 +25,13 @@ export default function ScanPage() {
           icon={PackagePlus}
           title="Add Product"
           description="Scan a barcode to update an existing product or create a brand new inventory item."
+        />
+
+        <ActionCard
+          href="/scan/lot"
+          icon={Boxes}
+          title="Scan Lot"
+          description="Create a named lot, assign a location and scan multiple products into the same group."
         />
       </div>
     </PageShell>
