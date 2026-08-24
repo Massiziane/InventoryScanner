@@ -24,6 +24,9 @@ export default function AddProductScanPage() {
     handleStopScanner,
     handleSearchProduct,
     handleProductSaved,
+    isTorchOn,
+    isTorchSupported,
+    handleToggleTorch,
   } = useAddProductScanner();
 
   return (
@@ -38,8 +41,11 @@ export default function AddProductScanPage() {
         videoRef={videoRef}
         isCameraStarted={isCameraStarted}
         cameraError={cameraError}
+        isTorchOn={isTorchOn}
+        isTorchSupported={isTorchSupported}
         onStart={handleStartScanner}
         onStop={handleStopScanner}
+        onToggleTorch={handleToggleTorch}
       />
 
       <BarcodeSearchCard

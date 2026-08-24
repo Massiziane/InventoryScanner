@@ -20,11 +20,63 @@ export function useAddProductScanner() {
   const [isCameraStarted, setIsCameraStarted] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
+  const [isTorchOn, setIsTorchOn] = useState(false);
+  const [isTorchSupported, setIsTorchSupported] = useState(false);
+
   useEffect(() => {
     return () => {
       controlsRef.current?.stop();
     };
   }, []);
+
+  function getVideoTrack() {
+    const stream = videoRef.current?.srcObject as MediaStream | null;
+
+    return stream?.getVideoTracks()[0] ?? null;
+  }
+
+  function checkTorchSupport() {
+    const track = getVideoTrack();
+
+    if (!track) {
+      setIsTorchSupported(false);
+      return;
+    }
+
+    const capabilities = track.getCapabilities?.() as
+      | (MediaTrackCapabilities & {
+          torch?: boolean;
+        })
+      | undefined;
+
+    setIsTorchSupported(Boolean(capabilities?.torch));
+  }
+
+  async function handleToggleTorch() {
+    const track = getVideoTrack();
+
+    if (!track) return;
+
+    const nextValue = !isTorchOn;
+
+    try {
+      await track.applyConstraints({
+        advanced: [
+          {
+            torch: nextValue,
+          } as MediaTrackConstraintSet,
+        ],
+      });
+
+      setIsTorchOn(nextValue);
+    } catch (error) {
+      console.error("Torch toggle failed:", error);
+
+      setMessage(
+        "Flashlight control is not available on this device or browser."
+      );
+    }
+  }
 
   async function handleStartScanner() {
     if (!videoRef.current) return;
@@ -32,14 +84,21 @@ export function useAddProductScanner() {
     try {
       setCameraError("");
       setMessage("");
+      setIsTorchOn(false);
+      setIsTorchSupported(false);
 
       controlsRef.current = await startBarcodeScanner({
         videoElement: videoRef.current,
+
         onError: console.error,
+
         onBarcodeDetected: async (detectedBarcode) => {
-          if (detectedBarcode === lastScannedRef.current) return;
+          if (detectedBarcode === lastScannedRef.current) {
+            return;
+          }
 
           lastScannedRef.current = detectedBarcode;
+
           setBarcode(detectedBarcode);
 
           if (navigator.vibrate) {
@@ -55,9 +114,21 @@ export function useAddProductScanner() {
       });
 
       setIsCameraStarted(true);
+
+      /*
+       * ZXing needs a moment to attach the MediaStream
+       * to the video element before we check camera capabilities.
+       */
+      setTimeout(() => {
+        checkTorchSupport();
+      }, 300);
     } catch (error) {
       console.error(error);
+
       setIsCameraStarted(false);
+      setIsTorchOn(false);
+      setIsTorchSupported(false);
+
       setCameraError(
         "Camera access failed. Allow camera permission or use manual input."
       );
@@ -67,7 +138,10 @@ export function useAddProductScanner() {
   function handleStopScanner() {
     controlsRef.current?.stop();
     controlsRef.current = null;
+
     setIsCameraStarted(false);
+    setIsTorchOn(false);
+    setIsTorchSupported(false);
   }
 
   async function handleSearchProduct(code = barcode) {
@@ -81,59 +155,87 @@ export function useAddProductScanner() {
     setDraft(null);
     setShowForm(false);
 
-    const data = await searchProductByBarcode(normalizedCode);
+    try {
+      const data = await searchProductByBarcode(normalizedCode);
 
-    setIsLoading(false);
+      if (!data) {
+        setDraft({
+          barcode: normalizedCode,
+          name: "",
+          description: "",
+          imageUrl: "",
+        });
 
-    if (!data) {
+        setMessage(
+          "Product search failed. You can create it manually."
+        );
+
+        setShowForm(true);
+
+        return;
+      }
+
+      if (data.source === "local" && data.product) {
+        setProduct(data.product);
+        setDraft(null);
+        setShowForm(true);
+
+        setMessage(
+          `Product already exists: ${data.product.stock} in stock${
+            data.product.location
+              ? ` at ${data.product.location}`
+              : ""
+          }.`
+        );
+
+        return;
+      }
+
+      if (
+        data.source === "upcitemdb" &&
+        data.externalProduct
+      ) {
+        setProduct(null);
+
+        setDraft({
+          barcode: normalizedCode,
+          name: data.externalProduct.name,
+          description: data.externalProduct.description,
+          imageUrl: data.externalProduct.imageUrl,
+        });
+
+        setShowForm(true);
+
+        setMessage(
+          "Product found online. Review and save it."
+        );
+
+        return;
+      }
+
+      setProduct(null);
+
       setDraft({
         barcode: normalizedCode,
         name: "",
         description: "",
         imageUrl: "",
       });
-      setMessage("Product search failed. You can create it manually.");
-      setShowForm(true);
-      return;
-    }
 
-    if (data.source === "local" && data.product) {
-      setProduct(data.product);
-      setDraft(null);
       setShowForm(true);
 
       setMessage(
-        `Product already exists: ${data.product.stock} in stock${
-          data.product.location ? ` at ${data.product.location}` : ""
-        }.`
+        "Product not found. You can create it manually."
       );
+    } catch (error) {
+      console.error(error);
 
-      return;
+      setMessage(
+        "Something went wrong while searching for the product."
+      );
+    } finally {
+      setIsLoading(false);
     }
-
-    if (data.source === "upcitemdb" && data.externalProduct) {
-      setProduct(null);
-      setDraft({
-        barcode: normalizedCode,
-        name: data.externalProduct.name,
-        description: data.externalProduct.description,
-        imageUrl: data.externalProduct.imageUrl,
-      });
-      setShowForm(true);
-      setMessage("Product found online. Review and save it.");
-
-      return;
-    }
-
-    setProduct(null);
-    setDraft({
-      barcode: normalizedCode,
-      name: "",
-      description: "",
-      imageUrl: "",
-    });
-    setShowForm(true);
-    setMessage("Product not found. You can create it manually.");
   }
 
   function resetPage() {
@@ -145,23 +247,36 @@ export function useAddProductScanner() {
   }
 
   function handleProductSaved() {
-    setMessage(product ? "Product modified." : "Product created.");
+    setMessage(
+      product ? "Product modified." : "Product created."
+    );
+
     resetPage();
   }
 
   return {
     videoRef,
+
     barcode,
     product,
     draft,
+
     message,
     cameraError,
+
     isLoading,
     isCameraStarted,
     showForm,
+
+    isTorchOn,
+    isTorchSupported,
+
     setBarcode,
+
     handleStartScanner,
     handleStopScanner,
+    handleToggleTorch,
+
     handleSearchProduct,
     handleProductSaved,
   };
