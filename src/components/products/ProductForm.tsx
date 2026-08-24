@@ -32,6 +32,9 @@ export default function ProductForm({
   const [price, setPrice] = useState(product?.price?.toString() ?? "0");
   const [stock, setStock] = useState(product?.stock?.toString() ?? "0");
   const [location, setLocation] = useState(product?.location ?? "");
+
+  const [locations, setLocations] = useState<string[]>([]);
+
   const [imageUrl, setImageUrl] = useState(
     product?.imageUrl ?? draft?.imageUrl ?? ""
   );
@@ -52,6 +55,24 @@ export default function ProductForm({
     setPhotoFile(null);
     setPhotoPreview("");
   }, [product, draft, barcode]);
+
+  useEffect(() => {
+    async function loadLocations() {
+      try {
+        const response = await fetch("/api/locations");
+
+        if (!response.ok) return;
+
+        const data: string[] = await response.json();
+
+        setLocations(data);
+      } catch (error) {
+        console.error("Could not load locations:", error);
+      }
+    }
+
+    loadLocations();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -142,7 +163,7 @@ export default function ProductForm({
         description: description || null,
         price: Number(price || 0),
         stock: Number(stock || 0),
-        location: location || null,
+        location: location.trim() || null,
         imageUrl: finalImageUrl || null,
       };
 
@@ -184,6 +205,17 @@ export default function ProductForm({
       }
 
       setPhotoPreview("");
+
+      if (
+        savedProduct.location &&
+        !locations.includes(savedProduct.location)
+      ) {
+        setLocations((current) =>
+          [...current, savedProduct.location as string].sort((a, b) =>
+            a.localeCompare(b)
+          )
+        );
+      }
 
       onSaved?.(savedProduct);
     } catch (error) {
@@ -295,10 +327,9 @@ export default function ProductForm({
         required
       />
 
-      <Input
-        name="location"
-        label="Location / placement"
+      <LocationInput
         value={location}
+        locations={locations}
         onChange={setLocation}
       />
 
@@ -329,6 +360,91 @@ export default function ProductForm({
             : "Create product"}
       </button>
     </form>
+  );
+}
+
+function LocationInput({
+  value,
+  locations,
+  onChange,
+}: {
+  value: string;
+  locations: string[];
+  onChange: (value: string) => void;
+}) {
+  const [isCustom, setIsCustom] = useState(
+    Boolean(value && !locations.includes(value))
+  );
+
+  useEffect(() => {
+    if (!value) {
+      setIsCustom(false);
+      return;
+    }
+
+    if (!locations.includes(value)) {
+      setIsCustom(true);
+    }
+  }, [value, locations]);
+
+  return (
+    <div className="space-y-2">
+      <label className="block">
+        <span className="mb-2 block text-sm font-bold text-slate-300">
+          Location / placement
+        </span>
+
+        <select
+          value={
+            isCustom
+              ? "__custom__"
+              : locations.includes(value)
+                ? value
+                : ""
+          }
+          onChange={(event) => {
+            const selected = event.target.value;
+
+            if (selected === "__custom__") {
+              setIsCustom(true);
+              onChange("");
+              return;
+            }
+
+            setIsCustom(false);
+            onChange(selected);
+          }}
+          className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)] px-4 py-4 text-[var(--app-text)] outline-none transition focus:border-cyan-300"
+        >
+          <option value="">
+            No location
+          </option>
+
+          {locations.map((existingLocation) => (
+            <option
+              key={existingLocation}
+              value={existingLocation}
+            >
+              {existingLocation}
+            </option>
+          ))}
+
+          <option value="__custom__">
+            + Add new location
+          </option>
+        </select>
+      </label>
+
+      {isCustom && (
+        <input
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder="Enter new location"
+          autoFocus
+          className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)] px-4 py-4 text-[var(--app-text)] outline-none transition placeholder:text-slate-600 focus:border-cyan-300"
+        />
+      )}
+    </div>
   );
 }
 
