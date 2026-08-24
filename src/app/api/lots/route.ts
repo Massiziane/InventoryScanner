@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/prisma";
 
+type LotRequestItem = {
+  productId: string;
+  quantity: number;
+};
+
 export async function GET() {
   const lots = await prisma.lot.findMany({
     include: {
@@ -23,7 +28,9 @@ export async function POST(request: Request) {
   const name = String(body.name ?? "").trim();
   const location = String(body.location ?? "").trim();
 
-  const items = Array.isArray(body.items) ? body.items : [];
+  const items: LotRequestItem[] = Array.isArray(body.items)
+    ? body.items
+    : [];
 
   if (!name) {
     return Response.json(
@@ -45,12 +52,10 @@ export async function POST(request: Request) {
       location: location || null,
 
       items: {
-        create: items.map(
-          (item: { productId: string; quantity: number }) => ({
-            productId: item.productId,
-            quantity: Math.max(1, Number(item.quantity) || 1),
-          })
-        ),
+        create: items.map((item) => ({
+          productId: item.productId,
+          quantity: Math.max(1, Number(item.quantity) || 1),
+        })),
       },
     },
 
