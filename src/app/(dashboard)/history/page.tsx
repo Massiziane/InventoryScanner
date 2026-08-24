@@ -3,7 +3,7 @@ import GlassCard from "@/components/ui/GlassCard";
 import PageHeader from "@/components/ui/PageHeader";
 import PageShell from "@/components/ui/PageShell";
 import LotHistoryCard from "@/components/history/LotHistoryCard";
-import LotHistoryItemCard from "@/components/history/LotHistoryItemCard";
+import ScanHistoryItemCard from "@/components/history/ScanHistoryItemCard";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -117,43 +117,35 @@ export default async function HistoryPage() {
             const scan = entry.data;
 
             return (
-              <GlassCard
+              <ScanHistoryItemCard
                 key={`scan-${scan.id}`}
-                className="p-4"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <h2 className="break-words font-black text-[var(--app-text)]">
-                      {scan.product?.name ?? "Unknown product"}
-                    </h2>
+                scan={{
+                  id: scan.id,
+                  productId: scan.productId,
+                  barcode: scan.barcode,
+                  action: scan.action,
+                  quantity: scan.quantity,
+                  createdAt: scan.createdAt.toISOString(),
 
-                    <p className="mt-1 break-words text-xs text-slate-500">
-                      {scan.barcode}
-                    </p>
-
-                    <p className="mt-1 text-xs text-slate-600">
-                      {scan.createdAt.toLocaleString()}
-                    </p>
-                  </div>
-
-                  <div className="shrink-0 text-right">
-                    <p
-                      className={`rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wide ${
-                        scan.action === "SALE" ||
-                        scan.action === "REMOVE_STOCK"
-                          ? "border-red-400/20 bg-red-500/10 text-red-300"
-                          : "border-cyan-400/20 bg-cyan-400/10 text-cyan-300"
-                      }`}
-                    >
-                      {actionLabel(scan.action)}
-                    </p>
-
-                    <p className="mt-2 text-xs font-bold text-slate-500">
-                      Qty: {scan.quantity}
-                    </p>
-                  </div>
-                </div>
-              </GlassCard>
+                  product: scan.product
+                    ? {
+                        id: scan.product.id,
+                        name: scan.product.name,
+                        barcode: scan.product.barcode,
+                        sku: scan.product.sku,
+                        description: scan.product.description,
+                        price: scan.product.price.toString(),
+                        stock: scan.product.stock,
+                        location: scan.product.location,
+                        imageUrl: scan.product.imageUrl,
+                        createdAt:
+                          scan.product.createdAt.toISOString(),
+                        updatedAt:
+                          scan.product.updatedAt.toISOString(),
+                      }
+                    : null,
+                }}
+              />
             );
           })
         )}
