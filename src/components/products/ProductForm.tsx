@@ -36,6 +36,9 @@ export default function ProductForm({
     product?.imageUrl ?? draft?.imageUrl ?? ""
   );
 
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState("");
+
   useEffect(() => {
     setName(product?.name ?? draft?.name ?? "");
     setProductBarcode(product?.barcode ?? draft?.barcode ?? barcode);
@@ -45,71 +48,201 @@ export default function ProductForm({
     setStock(product?.stock?.toString() ?? "0");
     setLocation(product?.location ?? "");
     setImageUrl(product?.imageUrl ?? draft?.imageUrl ?? "");
+
+    setPhotoFile(null);
+    setPhotoPreview("");
   }, [product, draft, barcode]);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    return () => {
+      if (photoPreview) {
+        URL.revokeObjectURL(photoPreview);
+      }
+    };
+  }, [photoPreview]);
+
+  function handlePhotoChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file.");
+      return;
+    }
+
+    if (photoPreview) {
+      URL.revokeObjectURL(photoPreview);
+    }
+
+    setError("");
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  }
+
+  function handleRemoveSelectedPhoto() {
+    if (photoPreview) {
+      URL.revokeObjectURL(photoPreview);
+    }
+
+    setPhotoFile(null);
+    setPhotoPreview("");
+  }
+
+  async function uploadPhoto(file: File) {
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    const response = await fetch("/api/upload/product-image", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+
+      throw new Error(
+        data?.error ?? "Product image upload failed."
+      );
+    }
+
+    const data: { url: string } = await response.json();
+
+    return data.url;
+  }
+
+  async function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault();
 
     setError("");
     setIsSaving(true);
 
-    const payload = {
-      name,
-      barcode: productBarcode,
-      ...(mode === "update" ? { sku: sku || null } : {}),
-      description: description || null,
-      price: Number(price || 0),
-      stock: Number(stock || 0),
-      location: location || null,
-      imageUrl: imageUrl || null,
-    };
+    try {
+      let finalImageUrl = imageUrl;
 
-    const url =
-      mode === "update" && product
-        ? `/api/products/${product.id}`
-        : "/api/products";
+      if (photoFile) {
+        finalImageUrl = await uploadPhoto(photoFile);
+      }
 
-    const method = mode === "update" ? "PATCH" : "POST";
+      const payload = {
+        name,
+        barcode: productBarcode,
 
-    const response = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+        ...(mode === "update"
+          ? {
+              sku: sku || null,
+            }
+          : {}),
 
-    setIsSaving(false);
+        description: description || null,
+        price: Number(price || 0),
+        stock: Number(stock || 0),
+        location: location || null,
+        imageUrl: finalImageUrl || null,
+      };
 
-    if (!response.ok) {
-      const data = await response.json();
+      const url =
+        mode === "update" && product
+          ? `/api/products/${product.id}`
+          : "/api/products";
 
-      console.error(data);
+      const method =
+        mode === "update" && product
+          ? "PATCH"
+          : "POST";
 
-      setError(JSON.stringify(data));
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-      return;
+      if (!response.ok) {
+        const data = await response.json();
+
+        console.error(data);
+
+        setError(JSON.stringify(data));
+
+        return;
+      }
+
+      const savedProduct: Product = await response.json();
+
+      setImageUrl(savedProduct.imageUrl ?? "");
+      setPhotoFile(null);
+
+      if (photoPreview) {
+        URL.revokeObjectURL(photoPreview);
+      }
+
+      setPhotoPreview("");
+
+      onSaved?.(savedProduct);
+    } catch (error) {
+      console.error(error);
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while saving the product."
+      );
+    } finally {
+      setIsSaving(false);
     }
-
-    const savedProduct: Product = await response.json();
-
-    onSaved?.(savedProduct);
   }
+
+  const displayedImage = photoPreview || imageUrl;
 
   return (
     <form
       onSubmit={handleSubmit}
       className="space-y-3 rounded-3xl border border-cyan-400/10 bg-[var(--app-bg)] p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]"
     >
-      {imageUrl && (
-        <div className="overflow-hidden rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]">
-          <img
-            src={imageUrl}
-            alt={name || "Product image"}
-            className="h-48 w-full object-contain p-4"
+      <div className="space-y-3">
+        <span className="block text-sm font-bold text-slate-300">
+          Product photo
+        </span>
+
+        {displayedImage && (
+          <div className="overflow-hidden rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]">
+            <img
+              src={displayedImage}
+              alt={name || "Product image"}
+              className="h-48 w-full object-contain p-4"
+            />
+          </div>
+        )}
+
+        <label className="flex w-full cursor-pointer items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-4 font-black text-cyan-300 transition hover:border-cyan-400/40">
+          {photoFile ? "Retake Photo" : "Take Photo"}
+
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handlePhotoChange}
+            className="hidden"
           />
-        </div>
-      )}
+        </label>
+
+        {photoFile && (
+          <button
+            type="button"
+            onClick={handleRemoveSelectedPhoto}
+            className="w-full rounded-2xl border border-red-500/20 bg-red-500/10 py-3 font-bold text-red-300"
+          >
+            Remove Selected Photo
+          </button>
+        )}
+      </div>
 
       <Input
         name="name"
@@ -128,7 +261,12 @@ export default function ProductForm({
       />
 
       {mode === "update" && (
-        <Input name="sku" label="SKU" value={sku} onChange={setSku} />
+        <Input
+          name="sku"
+          label="SKU"
+          value={sku}
+          onChange={setSku}
+        />
       )}
 
       <Input
@@ -178,11 +316,14 @@ export default function ProductForm({
       )}
 
       <button
+        type="submit"
         disabled={isSaving}
         className="w-full rounded-2xl bg-cyan-300 py-4 font-black text-slate-950 disabled:opacity-60"
       >
         {isSaving
-          ? "Saving..."
+          ? photoFile
+            ? "Uploading & Saving..."
+            : "Saving..."
           : mode === "update"
             ? "Modify product"
             : "Create product"}
