@@ -3,7 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { IScannerControls } from "@zxing/browser";
 import type { Product, ScanAction } from "@/types";
-import { playScanFeedback, prepareScanFeedback } from "@/lib/scan-feedback";
+
+import {
+  playScanFeedback,
+  prepareScanFeedback,
+} from "@/lib/scan-feedback";
+
 import { searchProductByBarcode } from "@/utils/products";
 import { applyProductScan } from "@/utils/scans";
 import { startBarcodeScanner } from "@/utils/scanner";
@@ -12,10 +17,14 @@ export function useProductLookupScanner() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const lastScannedRef = useRef("");
+  const scanNoticeTimeoutRef = useRef<number | null>(null);
 
   const [barcode, setBarcode] = useState("");
   const [product, setProduct] = useState<Product | null>(null);
+
   const [message, setMessage] = useState("");
+  const [scanNotice, setScanNotice] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [isCameraStarted, setIsCameraStarted] = useState(false);
@@ -23,8 +32,25 @@ export function useProductLookupScanner() {
   useEffect(() => {
     return () => {
       controlsRef.current?.stop();
+
+      if (scanNoticeTimeoutRef.current !== null) {
+        window.clearTimeout(scanNoticeTimeoutRef.current);
+      }
     };
   }, []);
+
+  function showScanNotice(text: string) {
+    setScanNotice(text);
+
+    if (scanNoticeTimeoutRef.current !== null) {
+      window.clearTimeout(scanNoticeTimeoutRef.current);
+    }
+
+    scanNoticeTimeoutRef.current = window.setTimeout(() => {
+      setScanNotice("");
+      scanNoticeTimeoutRef.current = null;
+    }, 1800);
+  }
 
   async function handleStartScanner() {
     if (!videoRef.current) return;
@@ -37,19 +63,25 @@ export function useProductLookupScanner() {
 
       controlsRef.current = await startBarcodeScanner({
         videoElement: videoRef.current,
+
         onError: console.error,
+
         onBarcodeDetected: async (detectedBarcode) => {
-          if (detectedBarcode === lastScannedRef.current) return;
+          if (detectedBarcode === lastScannedRef.current) {
+            return;
+          }
 
           lastScannedRef.current = detectedBarcode;
+
           setBarcode(detectedBarcode);
-          setMessage(`Scanned: ${detectedBarcode}`);
+
+          showScanNotice(`Barcode ${detectedBarcode} scanned`);
 
           playScanFeedback();
 
           await handleSearchProduct(detectedBarcode);
 
-          setTimeout(() => {
+          window.setTimeout(() => {
             lastScannedRef.current = "";
           }, 2500);
         },
@@ -58,7 +90,9 @@ export function useProductLookupScanner() {
       setIsCameraStarted(true);
     } catch (error) {
       console.error(error);
+
       setIsCameraStarted(false);
+
       setCameraError(
         "Camera access failed. Allow camera permission or use manual input."
       );
@@ -68,27 +102,48 @@ export function useProductLookupScanner() {
   function handleStopScanner() {
     controlsRef.current?.stop();
     controlsRef.current = null;
+
     setIsCameraStarted(false);
   }
 
   async function handleSearchProduct(code = barcode) {
-    if (!code.trim()) return;
+    const normalizedCode = code.trim();
+
+    if (!normalizedCode) return;
 
     setIsLoading(true);
     setMessage("");
     setProduct(null);
 
-    const data = await searchProductByBarcode(code);
+    try {
+      const data = await searchProductByBarcode(normalizedCode);
 
-    setIsLoading(false);
+      if (!data?.product) {
+        showScanNotice(`Barcode ${normalizedCode} scanned`);
 
-    if (!data?.product) {
-      setMessage(`Scanned ${code}, but no product was found.`);
-      return;
+        setMessage(
+          `Scanned ${normalizedCode}, but no product was found.`
+        );
+
+        return;
+      }
+
+      setProduct(data.product);
+
+      showScanNotice(`${data.product.name} scanned`);
+
+      setMessage("Product found.");
+    } catch (error) {
+      console.error(error);
+
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Product lookup failed."
+      );
+    } finally {
+      setIsLoading(false);
     }
-
-    setProduct(data.product);
-    setMessage("Product found.");
   }
 
   async function handleApplyScan(action: ScanAction) {
@@ -98,12 +153,26 @@ export function useProductLookupScanner() {
       setIsLoading(true);
       setMessage("");
 
-      const data = await applyProductScan(barcode, action);
+      const data = await applyProductScan(
+        barcode,
+        action
+      );
 
       setProduct(data.product);
+
+      if (data.product) {
+        showScanNotice(
+          `${data.product.name}: ${action.replaceAll("_", " ")}`
+        );
+      }
+
       setMessage("Stock updated successfully.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Scan failed");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Scan failed"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -111,15 +180,22 @@ export function useProductLookupScanner() {
 
   return {
     videoRef,
+
     barcode,
     product,
+
     message,
+    scanNotice,
+
     isLoading,
     cameraError,
     isCameraStarted,
+
     setBarcode,
+
     handleStartScanner,
     handleStopScanner,
+
     handleSearchProduct,
     handleApplyScan,
   };

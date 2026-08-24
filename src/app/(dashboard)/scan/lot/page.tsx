@@ -6,6 +6,7 @@ import PageShell from "@/components/ui/PageShell";
 import ScannerCard from "@/components/scan/add-product/ScannerCard";
 import BarcodeSearchCard from "@/components/scan/add-product/BarcodeSearchCard";
 import ScanMessage from "@/components/scan/add-product/ScanMessage";
+import ScanNotification from "@/components/scan/ScanNotification";
 
 import LotHeaderForm from "@/components/scan/lot/LotHeaderForm";
 import LotList from "@/components/scan/lot/LotList";
@@ -28,6 +29,7 @@ export default function LotScanPage() {
     draft,
 
     message,
+    scanNotice,
     cameraError,
 
     isLoading,
@@ -54,6 +56,8 @@ export default function LotScanPage() {
 
   return (
     <PageShell>
+      <ScanNotification message={scanNotice} />
+
       <PageHeader
         eyebrow="Inventory"
         title="Scan Lot"

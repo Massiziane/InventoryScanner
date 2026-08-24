@@ -11,6 +11,7 @@ export function useLotScanner() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const lastScannedRef = useRef("");
+  const scanNoticeTimeoutRef = useRef<number | null>(null);
 
   const [barcode, setBarcode] = useState("");
   const [lotName, setLotName] = useState("");
@@ -22,6 +23,7 @@ export function useLotScanner() {
   const [draft, setDraft] = useState<ProductDraft | null>(null);
 
   const [message, setMessage] = useState("");
+  const [scanNotice, setScanNotice] = useState("");
   const [cameraError, setCameraError] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
@@ -33,8 +35,25 @@ export function useLotScanner() {
   useEffect(() => {
     return () => {
       controlsRef.current?.stop();
+
+      if (scanNoticeTimeoutRef.current !== null) {
+        window.clearTimeout(scanNoticeTimeoutRef.current);
+      }
     };
   }, []);
+
+  function showScanNotice(text: string) {
+    setScanNotice(text);
+
+    if (scanNoticeTimeoutRef.current !== null) {
+      window.clearTimeout(scanNoticeTimeoutRef.current);
+    }
+
+    scanNoticeTimeoutRef.current = window.setTimeout(() => {
+      setScanNotice("");
+      scanNoticeTimeoutRef.current = null;
+    }, 1800);
+  }
 
   async function handleStartScanner() {
     if (!videoRef.current) return;
@@ -57,13 +76,15 @@ export function useLotScanner() {
 
           setBarcode(detectedBarcode);
 
+          showScanNotice(`Barcode ${detectedBarcode} scanned`);
+
           if (navigator.vibrate) {
             navigator.vibrate(100);
           }
 
           await handleSearchProduct(detectedBarcode);
 
-          setTimeout(() => {
+          window.setTimeout(() => {
             lastScannedRef.current = "";
           }, 2500);
         },
@@ -113,6 +134,8 @@ export function useLotScanner() {
           imageUrl: "",
         });
 
+        showScanNotice(`Barcode ${normalizedCode} scanned`);
+
         setMessage(
           "Product lookup failed. Fill in the product information to add it to this lot."
         );
@@ -138,6 +161,8 @@ export function useLotScanner() {
           imageUrl: data.externalProduct.imageUrl,
         });
 
+        showScanNotice(`${data.externalProduct.name} scanned`);
+
         setMessage(
           "Product found online. Review the information before adding it to the lot."
         );
@@ -154,6 +179,8 @@ export function useLotScanner() {
         imageUrl: "",
       });
 
+      showScanNotice(`Barcode ${normalizedCode} scanned`);
+
       setMessage(
         "Product not found. Create it and it will be added to this lot."
       );
@@ -162,19 +189,25 @@ export function useLotScanner() {
     } catch (error) {
       console.error(error);
 
-      setMessage("Something went wrong while searching for the product.");
+      setMessage(
+        "Something went wrong while searching for the product."
+      );
     } finally {
       setIsLoading(false);
     }
   }
 
   function addProductToLot(foundProduct: Product) {
+    let wasExisting = false;
+
     setItems((currentItems) => {
       const existingItem = currentItems.find(
         (item) => item.product.id === foundProduct.id
       );
 
       if (existingItem) {
+        wasExisting = true;
+
         return currentItems.map((item) =>
           item.product.id === foundProduct.id
             ? {
@@ -194,6 +227,12 @@ export function useLotScanner() {
       ];
     });
 
+    showScanNotice(
+      wasExisting
+        ? `${foundProduct.name} +1`
+        : `${foundProduct.name} added to lot`
+    );
+
     setMessage(`${foundProduct.name} added to lot.`);
   }
 
@@ -204,6 +243,8 @@ export function useLotScanner() {
     setDraft(null);
     setBarcode("");
     setShowProductForm(false);
+
+    showScanNotice(`${savedProduct.name} created and added`);
 
     setMessage(`${savedProduct.name} created and added to lot.`);
   }
@@ -228,7 +269,9 @@ export function useLotScanner() {
       const response = await fetch(`/api/products/${productId}`);
 
       if (!response.ok) {
-        setMessage("Product was saved, but the lot view could not refresh.");
+        setMessage(
+          "Product was saved, but the lot view could not refresh."
+        );
         return;
       }
 
@@ -249,7 +292,9 @@ export function useLotScanner() {
     } catch (error) {
       console.error(error);
 
-      setMessage("Product was saved, but the lot view could not refresh.");
+      setMessage(
+        "Product was saved, but the lot view could not refresh."
+      );
     }
   }
 
@@ -311,6 +356,8 @@ export function useLotScanner() {
         return;
       }
 
+      showScanNotice(`Lot "${data.name}" saved`);
+
       setMessage(`Lot "${data.name}" saved successfully.`);
 
       setLotName("");
@@ -343,6 +390,7 @@ export function useLotScanner() {
     draft,
 
     message,
+    scanNotice,
     cameraError,
 
     isLoading,

@@ -18,11 +18,14 @@ export function useAddProductScanner() {
   const controlsRef = useRef<IScannerControls | null>(null);
   const lastScannedRef = useRef("");
 
+  const scanNoticeTimeoutRef = useRef<number | null>(null);
+
   const [barcode, setBarcode] = useState("");
   const [product, setProduct] = useState<Product | null>(null);
   const [draft, setDraft] = useState<ProductDraft | null>(null);
 
   const [message, setMessage] = useState("");
+  const [scanNotice, setScanNotice] = useState("");
   const [cameraError, setCameraError] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
@@ -38,8 +41,25 @@ export function useAddProductScanner() {
 
       controlsRef.current?.stop();
       controlsRef.current = null;
+
+      if (scanNoticeTimeoutRef.current !== null) {
+        window.clearTimeout(scanNoticeTimeoutRef.current);
+      }
     };
   }, []);
+
+  function showScanNotice(text: string) {
+    setScanNotice(text);
+
+    if (scanNoticeTimeoutRef.current !== null) {
+      window.clearTimeout(scanNoticeTimeoutRef.current);
+    }
+
+    scanNoticeTimeoutRef.current = window.setTimeout(() => {
+      setScanNotice("");
+      scanNoticeTimeoutRef.current = null;
+    }, 1800);
+  }
 
   async function setupTorch() {
     if (!videoRef.current) {
@@ -47,11 +67,6 @@ export function useAddProductScanner() {
       return;
     }
 
-    /*
-     * ZXing attaches the MediaStream to the video element.
-     * prepareTorch() grabs the active video track and checks
-     * whether that exact camera exposes torch control.
-     */
     const supported = prepareTorch(videoRef.current);
 
     console.log("Torch supported:", supported);
@@ -65,6 +80,7 @@ export function useAddProductScanner() {
       setMessage(
         "Flashlight is not available for the active camera."
       );
+
       return;
     }
 
@@ -119,6 +135,10 @@ export function useAddProductScanner() {
 
           setBarcode(detectedBarcode);
 
+          showScanNotice(
+            `Barcode ${detectedBarcode}`
+          );
+
           if (navigator.vibrate) {
             navigator.vibrate(100);
           }
@@ -135,10 +155,6 @@ export function useAddProductScanner() {
 
       setIsCameraStarted(true);
 
-      /*
-       * The camera stream may already be ready by the time
-       * ZXing resolves. If not, wait for the video metadata.
-       */
       const video = videoRef.current;
 
       if (!video) {
@@ -176,9 +192,6 @@ export function useAddProductScanner() {
   }
 
   async function handleStopScanner() {
-    /*
-     * Try turning the torch off first, if it is active.
-     */
     if (isTorchOn) {
       try {
         await setTorch(false);
@@ -245,6 +258,10 @@ export function useAddProductScanner() {
         setDraft(null);
         setShowForm(true);
 
+        showScanNotice(
+          `${data.product.name} scanned`
+        );
+
         setMessage(
           `Product already exists: ${data.product.stock} in stock${
             data.product.location
@@ -271,6 +288,10 @@ export function useAddProductScanner() {
             data.externalProduct.imageUrl,
         });
 
+        showScanNotice(
+          `${data.externalProduct.name} scanned`
+        );
+
         setShowForm(true);
 
         setMessage(
@@ -288,6 +309,10 @@ export function useAddProductScanner() {
         description: "",
         imageUrl: "",
       });
+
+      showScanNotice(
+        `Barcode ${normalizedCode} scanned`
+      );
 
       setShowForm(true);
 
@@ -331,6 +356,7 @@ export function useAddProductScanner() {
     draft,
 
     message,
+    scanNotice,
     cameraError,
 
     isLoading,
