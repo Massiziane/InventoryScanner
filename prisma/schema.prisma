@@ -20,12 +20,37 @@ model Product {
   price       Decimal  @db.Decimal(10,2)
   stock       Int      @default(0)
   location    String?
-  description String? @db.Text
+  description String?  @db.Text
   imageUrl     String? @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   scans       ScanLog[]
+  lotItems    LotItem[]
+}
+
+model Lot {
+  id        String   @id @default(cuid())
+  name      String
+  location  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items     LotItem[]
+}
+
+model LotItem {
+  id        String   @id @default(cuid())
+  lotId     String
+  productId String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lot       Lot      @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([lotId, productId])
 }
 
 enum ScanAction {
