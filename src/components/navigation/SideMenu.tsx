@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -27,11 +28,26 @@ export default function SideMenu() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed left-4 top-4 z-50 rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)]/90 p-3 text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,.08)] backdrop-blur transition hover:border-cyan-400/30"
+        className="fixed left-4 top-4 z-50 flex h-[48px] w-[48px] items-center justify-center rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)]/90 text-cyan-300 shadow-[0_0_25px_rgba(34,211,238,.08)] backdrop-blur transition hover:border-cyan-400/30"
         aria-label="Open menu"
       >
         <Menu size={22} />
       </button>
+
+      <Link
+        href="/"
+        className="fixed right-4 top-4 z-50 flex h-[48px] w-[48px] items-center justify-center overflow-hidden rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)]/90 p-1.5 shadow-[0_0_25px_rgba(34,211,238,.08)] backdrop-blur transition hover:border-cyan-400/30"
+        aria-label="Go to dashboard"
+      >
+        <Image
+          src="/icon.png"
+          alt="ScanApp logo"
+          width={40}
+          height={40}
+          className="h-full w-full object-contain"
+          priority
+        />
+      </Link>
 
       {open && (
         <div className="fixed inset-0 z-[100]">
