@@ -2,6 +2,8 @@ import EmptyState from "@/components/ui/EmptyState";
 import GlassCard from "@/components/ui/GlassCard";
 import PageHeader from "@/components/ui/PageHeader";
 import PageShell from "@/components/ui/PageShell";
+import LotHistoryCard from "@/components/history/LotHistoryCard";
+import LotHistoryItemCard from "@/components/history/LotHistoryItemCard";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -55,8 +57,7 @@ export default async function HistoryPage() {
       data: lot,
     })),
   ].sort(
-    (a, b) =>
-      b.createdAt.getTime() - a.createdAt.getTime()
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
   );
 
   return (
@@ -74,92 +75,42 @@ export default async function HistoryPage() {
             if (entry.type === "lot") {
               const lot = entry.data;
 
-              const totalUnits = lot.items.reduce(
-                (total, item) => total + item.quantity,
-                0
-              );
-
               return (
-                <details
+                <LotHistoryCard
                   key={`lot-${lot.id}`}
-                  className="group"
-                >
-                  <summary className="list-none cursor-pointer">
-                    <GlassCard className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                          <div className="mb-2 flex items-center gap-2">
-                            <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-cyan-300">
-                              Lot
-                            </span>
-                          </div>
+                  lot={{
+                    id: lot.id,
+                    name: lot.name,
+                    location: lot.location,
+                    createdAt: lot.createdAt.toISOString(),
+                    updatedAt: lot.updatedAt.toISOString(),
 
-                          <h2 className="break-words font-black text-[var(--app-text)]">
-                            {lot.name}
-                          </h2>
+                    items: lot.items.map((item) => ({
+                      id: item.id,
+                      lotId: item.lotId,
+                      productId: item.productId,
+                      quantity: item.quantity,
+                      createdAt: item.createdAt.toISOString(),
+                      updatedAt: item.updatedAt.toISOString(),
 
-                          {lot.location && (
-                            <p className="mt-1 text-xs text-cyan-300">
-                              {lot.location}
-                            </p>
-                          )}
-
-                          <p className="mt-1 text-xs text-slate-600">
-                            {lot.createdAt.toLocaleString()}
-                          </p>
-                        </div>
-
-                        <div className="shrink-0 text-right">
-                          <p className="text-sm font-black text-[var(--app-text)]">
-                            {lot.items.length}{" "}
-                            {lot.items.length === 1
-                              ? "product"
-                              : "products"}
-                          </p>
-
-                          <p className="mt-1 text-xs font-bold text-slate-500">
-                            {totalUnits} units
-                          </p>
-
-                          <p className="mt-2 text-xs font-bold text-cyan-300">
-                            View lot
-                          </p>
-                        </div>
-                      </div>
-                    </GlassCard>
-                  </summary>
-
-                  <div className="mt-2 space-y-2 pl-4">
-                    {lot.items.map((item) => (
-                      <GlassCard
-                        key={item.id}
-                        className="p-3"
-                      >
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="min-w-0">
-                            <p className="truncate font-bold text-[var(--app-text)]">
-                              {item.product.name}
-                            </p>
-
-                            <p className="mt-1 text-xs text-slate-500">
-                              {item.product.barcode}
-                            </p>
-
-                            {item.product.location && (
-                              <p className="mt-1 text-xs text-slate-600">
-                                {item.product.location}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="shrink-0 rounded-xl bg-cyan-400/10 px-3 py-2 text-sm font-black text-cyan-300">
-                            ×{item.quantity}
-                          </div>
-                        </div>
-                      </GlassCard>
-                    ))}
-                  </div>
-                </details>
+                      product: {
+                        id: item.product.id,
+                        name: item.product.name,
+                        barcode: item.product.barcode,
+                        sku: item.product.sku,
+                        description: item.product.description,
+                        price: item.product.price.toString(),
+                        stock: item.product.stock,
+                        location: item.product.location,
+                        imageUrl: item.product.imageUrl,
+                        createdAt:
+                          item.product.createdAt.toISOString(),
+                        updatedAt:
+                          item.product.updatedAt.toISOString(),
+                      },
+                    })),
+                  }}
+                />
               );
             }
 
