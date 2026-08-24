@@ -32,30 +32,39 @@ export function useAddProductScanner() {
   function getVideoTrack() {
     const stream = videoRef.current?.srcObject as MediaStream | null;
 
-    return stream?.getVideoTracks()[0] ?? null;
+    return stream?.getVideoTracks()?.[0] ?? null;
   }
 
   function checkTorchSupport() {
     const track = getVideoTrack();
 
     if (!track) {
+      console.log("No active video track");
       setIsTorchSupported(false);
       return;
     }
 
-    const capabilities = track.getCapabilities?.() as
-      | (MediaTrackCapabilities & {
-          torch?: boolean;
-        })
-      | undefined;
+    const capabilities = track.getCapabilities?.() as MediaTrackCapabilities & {
+      torch?: boolean;
+    };
 
-    setIsTorchSupported(Boolean(capabilities?.torch));
+    console.log("Camera capabilities:", capabilities);
+
+    const supported =
+      "torch" in capabilities && capabilities.torch === true;
+
+    console.log("Torch supported:", supported);
+
+    setIsTorchSupported(supported);
   }
 
   async function handleToggleTorch() {
     const track = getVideoTrack();
 
-    if (!track) return;
+    if (!track) {
+      setMessage("No active camera found.");
+      return;
+    }
 
     const nextValue = !isTorchOn;
 
@@ -64,16 +73,23 @@ export function useAddProductScanner() {
         advanced: [
           {
             torch: nextValue,
-          } as MediaTrackConstraintSet,
+          } as MediaTrackConstraintSet & {
+            torch: boolean;
+          },
         ],
       });
 
       setIsTorchOn(nextValue);
+      setMessage(
+        nextValue
+          ? "Flashlight turned on."
+          : "Flashlight turned off."
+      );
     } catch (error) {
-      console.error("Torch toggle failed:", error);
+      console.error("Torch error:", error);
 
       setMessage(
-        "Flashlight control is not available on this device or browser."
+        "Your current camera/browser does not allow flashlight control."
       );
     }
   }
@@ -115,13 +131,15 @@ export function useAddProductScanner() {
 
       setIsCameraStarted(true);
 
-      /*
-       * ZXing needs a moment to attach the MediaStream
-       * to the video element before we check camera capabilities.
-       */
-      setTimeout(() => {
-        checkTorchSupport();
-      }, 300);
+      if (videoRef.current) {
+        if (videoRef.current.readyState >= 2) {
+          checkTorchSupport();
+        } else {
+          videoRef.current.onloadedmetadata = () => {
+            checkTorchSupport();
+          };
+        }
+      }
     } catch (error) {
       console.error(error);
 

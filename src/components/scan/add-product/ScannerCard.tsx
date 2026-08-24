@@ -82,11 +82,12 @@ export default function ScannerCard({
           </button>
         ) : (
           <>
-            {isTorchSupported && (
+            {isCameraStarted && (
               <button
                 type="button"
                 onClick={onToggleTorch}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl border border-cyan-400/20 bg-[var(--app-panel)] py-4 font-black text-cyan-300 transition hover:border-cyan-400/40"
+                disabled={!isTorchSupported}
+                className="flex w-full items-center justify-center gap-3 rounded-2xl border border-cyan-400/20 bg-[var(--app-panel)] py-4 font-black text-cyan-300 transition hover:border-cyan-400/40 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isTorchOn ? (
                   <FlashlightOff size={20} />
@@ -94,9 +95,11 @@ export default function ScannerCard({
                   <Flashlight size={20} />
                 )}
 
-                {isTorchOn
-                  ? "Turn Flashlight Off"
-                  : "Turn Flashlight On"}
+                {isTorchSupported
+                  ? isTorchOn
+                    ? "Turn Flashlight Off"
+                    : "Turn Flashlight On"
+                  : "Flashlight Not Supported"}
               </button>
             )}
 
