@@ -17,7 +17,6 @@ export function useAddProductScanner() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const lastScannedRef = useRef("");
-
   const scanNoticeTimeoutRef = useRef<number | null>(null);
 
   const [barcode, setBarcode] = useState("");
@@ -30,7 +29,9 @@ export function useAddProductScanner() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isCameraStarted, setIsCameraStarted] = useState(false);
+
   const [showForm, setShowForm] = useState(false);
+  const [showAddStock, setShowAddStock] = useState(false);
 
   const [isTorchOn, setIsTorchOn] = useState(false);
   const [isTorchSupported, setIsTorchSupported] = useState(false);
@@ -80,7 +81,6 @@ export function useAddProductScanner() {
       setMessage(
         "Flashlight is not available for the active camera."
       );
-
       return;
     }
 
@@ -125,9 +125,7 @@ export function useAddProductScanner() {
         onError: console.error,
 
         onBarcodeDetected: async (detectedBarcode) => {
-          if (
-            detectedBarcode === lastScannedRef.current
-          ) {
+          if (detectedBarcode === lastScannedRef.current) {
             return;
           }
 
@@ -157,9 +155,7 @@ export function useAddProductScanner() {
 
       const video = videoRef.current;
 
-      if (!video) {
-        return;
-      }
+      if (!video) return;
 
       if (video.readyState >= 2 && video.srcObject) {
         await setupTorch();
@@ -213,9 +209,7 @@ export function useAddProductScanner() {
     setIsTorchSupported(false);
   }
 
-  async function handleSearchProduct(
-    code = barcode
-  ) {
+  async function handleSearchProduct(code = barcode) {
     const normalizedCode = code.trim();
 
     if (!normalizedCode) return;
@@ -225,13 +219,12 @@ export function useAddProductScanner() {
     setMessage("");
     setProduct(null);
     setDraft(null);
+
     setShowForm(false);
+    setShowAddStock(false);
 
     try {
-      const data =
-        await searchProductByBarcode(
-          normalizedCode
-        );
+      const data = await searchProductByBarcode(normalizedCode);
 
       if (!data) {
         setDraft({
@@ -246,7 +239,6 @@ export function useAddProductScanner() {
         );
 
         setShowForm(true);
-
         return;
       }
 
@@ -256,7 +248,9 @@ export function useAddProductScanner() {
       ) {
         setProduct(data.product);
         setDraft(null);
-        setShowForm(true);
+
+        setShowForm(false);
+        setShowAddStock(true);
 
         showScanNotice(
           `${data.product.name} scanned`
@@ -267,7 +261,7 @@ export function useAddProductScanner() {
             data.product.location
               ? ` at ${data.product.location}`
               : ""
-          }.`
+          }. Add more stock below.`
         );
 
         return;
@@ -282,10 +276,8 @@ export function useAddProductScanner() {
         setDraft({
           barcode: normalizedCode,
           name: data.externalProduct.name,
-          description:
-            data.externalProduct.description,
-          imageUrl:
-            data.externalProduct.imageUrl,
+          description: data.externalProduct.description,
+          imageUrl: data.externalProduct.imageUrl,
         });
 
         showScanNotice(
@@ -293,6 +285,7 @@ export function useAddProductScanner() {
         );
 
         setShowForm(true);
+        setShowAddStock(false);
 
         setMessage(
           "Product found online. Review and save it."
@@ -315,6 +308,7 @@ export function useAddProductScanner() {
       );
 
       setShowForm(true);
+      setShowAddStock(false);
 
       setMessage(
         "Product not found. You can create it manually."
@@ -330,12 +324,33 @@ export function useAddProductScanner() {
     }
   }
 
+  function handleStockUpdated(updatedProduct: Product) {
+    setProduct(updatedProduct);
+
+    setShowAddStock(false);
+
+    showScanNotice(
+      `${updatedProduct.name} stock updated`
+    );
+
+    setMessage(
+      `${updatedProduct.name} stock updated successfully.`
+    );
+
+    window.setTimeout(() => {
+      resetPage();
+    }, 1200);
+  }
+
   function resetPage() {
     setBarcode("");
     setProduct(null);
     setDraft(null);
+
     setMessage("");
+
     setShowForm(false);
+    setShowAddStock(false);
   }
 
   function handleProductSaved() {
@@ -361,7 +376,9 @@ export function useAddProductScanner() {
 
     isLoading,
     isCameraStarted,
+
     showForm,
+    showAddStock,
 
     isTorchOn,
     isTorchSupported,
@@ -373,6 +390,10 @@ export function useAddProductScanner() {
     handleToggleTorch,
 
     handleSearchProduct,
+
     handleProductSaved,
+    handleStockUpdated,
+
+    resetPage,
   };
 }
