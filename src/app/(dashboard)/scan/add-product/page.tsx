@@ -9,6 +9,7 @@ import AddStockCard from "@/components/products/AddStockCard";
 import ScannerCard from "@/components/scan/add-product/ScannerCard";
 import BarcodeSearchCard from "@/components/scan/add-product/BarcodeSearchCard";
 import ScanMessage from "@/components/scan/add-product/ScanMessage";
+import ScanNotification from "@/components/scan/ScanNotification";
 
 import Link from "next/link";
 import { Layers3 } from "lucide-react";
@@ -24,6 +25,7 @@ export default function AddProductScanPage() {
     draft,
 
     message,
+    scanNotice,
     cameraError,
 
     isLoading,
@@ -51,18 +53,21 @@ export default function AddProductScanPage() {
 
   return (
     <PageShell>
+      <ScanNotification message={scanNotice} />
+
       <PageHeader
         eyebrow="Inventory"
         title="Add Product"
         description="Scan a barcode to add stock to an existing product or create a new inventory item."
       />
-        <Link
-          href="/scan/lot"
-          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-4 font-black text-cyan-300 transition hover:border-cyan-400/40 hover:bg-cyan-400/15 active:scale-[0.98]"
-        >
-          <Layers3 size={20} />
-          Scan a Lot / Group
-        </Link>
+
+      <Link
+        href="/scan/lot"
+        className="flex w-full items-center justify-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-4 font-black text-cyan-300 transition hover:border-cyan-400/40 hover:bg-cyan-400/15 active:scale-[0.98]"
+      >
+        <Layers3 size={20} />
+        Scan a Lot / Group
+      </Link>
 
       <div className="space-y-5">
         <ScannerCard
@@ -85,7 +90,6 @@ export default function AddProductScanPage() {
 
         <ScanMessage message={message} />
 
-        {/* Existing product */}
         {showAddStock && product && (
           <AddStockCard
             product={product}
@@ -94,7 +98,6 @@ export default function AddProductScanPage() {
           />
         )}
 
-        {/* New product */}
         {showForm && (
           <ProductForm
             mode="create"
