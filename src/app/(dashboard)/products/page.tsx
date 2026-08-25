@@ -12,16 +12,47 @@ export default async function ProductsPage() {
     orderBy: {
       createdAt: "desc",
     },
+
+    include: {
+      variants: true,
+      promotions: true,
+    },
   });
 
   const serializedProducts = products.map((product) => ({
     id: product.id,
+
     name: product.name,
     barcode: product.barcode,
     sku: product.sku,
+
     price: product.price.toString(),
     stock: product.stock,
+
     location: product.location,
+
+    category: product.category,
+
+    variants: product.variants.map((variant) => ({
+      id: variant.id,
+      productId: variant.productId,
+      size: variant.size,
+      stock: variant.stock,
+      createdAt: variant.createdAt.toISOString(),
+      updatedAt: variant.updatedAt.toISOString(),
+    })),
+
+    promotions: product.promotions.map((promotion) => ({
+      id: promotion.id,
+      productId: promotion.productId,
+      quantity: promotion.quantity,
+      price: promotion.price.toString(),
+      active: promotion.active,
+      startsAt: promotion.startsAt?.toISOString() ?? null,
+      endsAt: promotion.endsAt?.toISOString() ?? null,
+      createdAt: promotion.createdAt.toISOString(),
+      updatedAt: promotion.updatedAt.toISOString(),
+    })),
   }));
 
   return (

@@ -4,11 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { IScannerControls } from "@zxing/browser";
 import type { Product, ScanAction } from "@/types";
 
-import {
-  playScanFeedback,
-  prepareScanFeedback,
-} from "@/lib/scan-feedback";
-
+import { prepareScanFeedback } from "@/lib/scan-feedback";
 import { searchProductByBarcode } from "@/utils/products";
 import { applyProductScan } from "@/utils/scans";
 import { startBarcodeScanner } from "@/utils/scanner";
@@ -32,6 +28,7 @@ export function useProductLookupScanner() {
   useEffect(() => {
     return () => {
       controlsRef.current?.stop();
+      controlsRef.current = null;
 
       if (scanNoticeTimeoutRef.current !== null) {
         window.clearTimeout(scanNoticeTimeoutRef.current);
@@ -77,7 +74,9 @@ export function useProductLookupScanner() {
 
           showScanNotice(`Barcode ${detectedBarcode} scanned`);
 
-          playScanFeedback();
+          if (navigator.vibrate) {
+            navigator.vibrate(100);
+          }
 
           await handleSearchProduct(detectedBarcode);
 
@@ -161,17 +160,28 @@ export function useProductLookupScanner() {
       setProduct(data.product);
 
       if (data.product) {
+        const actionLabel =
+          action === "ADD_STOCK"
+            ? "stock added"
+            : action === "REMOVE_STOCK"
+              ? "stock removed"
+              : action === "SALE"
+                ? "sale recorded"
+                : "checked";
+
         showScanNotice(
-          `${data.product.name}: ${action.replaceAll("_", " ")}`
+          `${data.product.name}: ${actionLabel}`
         );
       }
 
       setMessage("Stock updated successfully.");
     } catch (error) {
+      console.error(error);
+
       setMessage(
         error instanceof Error
           ? error.message
-          : "Scan failed"
+          : "Scan failed."
       );
     } finally {
       setIsLoading(false);
