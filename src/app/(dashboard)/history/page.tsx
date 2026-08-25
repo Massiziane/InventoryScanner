@@ -25,7 +25,11 @@ export default async function HistoryPage() {
         createdAt: "desc",
       },
       include: {
-        product: true,
+        product: {
+          include: {
+            variants: true,
+          },
+        },
       },
     }),
 
@@ -37,7 +41,11 @@ export default async function HistoryPage() {
       include: {
         items: {
           include: {
-            product: true,
+            product: {
+              include: {
+                variants: true,
+              },
+            },
           },
         },
       },
@@ -103,10 +111,20 @@ export default async function HistoryPage() {
                         stock: item.product.stock,
                         location: item.product.location,
                         imageUrl: item.product.imageUrl,
-                        createdAt:
-                          item.product.createdAt.toISOString(),
-                        updatedAt:
-                          item.product.updatedAt.toISOString(),
+
+                        category: item.product.category,
+
+                        variants: item.product.variants.map((variant) => ({
+                          id: variant.id,
+                          productId: variant.productId,
+                          size: variant.size,
+                          stock: variant.stock,
+                          createdAt: variant.createdAt.toISOString(),
+                          updatedAt: variant.updatedAt.toISOString(),
+                        })),
+
+                        createdAt: item.product.createdAt.toISOString(),
+                        updatedAt: item.product.updatedAt.toISOString(),
                       },
                     })),
                   }}
@@ -138,10 +156,20 @@ export default async function HistoryPage() {
                         stock: scan.product.stock,
                         location: scan.product.location,
                         imageUrl: scan.product.imageUrl,
-                        createdAt:
-                          scan.product.createdAt.toISOString(),
-                        updatedAt:
-                          scan.product.updatedAt.toISOString(),
+
+                        category: scan.product.category,
+
+                        variants: scan.product.variants.map((variant) => ({
+                          id: variant.id,
+                          productId: variant.productId,
+                          size: variant.size,
+                          stock: variant.stock,
+                          createdAt: variant.createdAt.toISOString(),
+                          updatedAt: variant.updatedAt.toISOString(),
+                        })),
+
+                        createdAt: scan.product.createdAt.toISOString(),
+                        updatedAt: scan.product.updatedAt.toISOString(),
                       }
                     : null,
                 }}
