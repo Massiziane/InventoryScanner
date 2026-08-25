@@ -12,7 +12,9 @@ export async function getHomeDashboardData(): Promise<DashboardData> {
     prisma.product.count(),
 
     prisma.product.aggregate({
-      _sum: { stock: true },
+      _sum: {
+        stock: true,
+      },
     }),
 
     prisma.product.count({
@@ -32,41 +34,101 @@ export async function getHomeDashboardData(): Promise<DashboardData> {
 
     prisma.scanLog.findMany({
       take: 5,
+
       orderBy: {
         createdAt: "desc",
       },
+
       include: {
-        product: true,
+        product: {
+          include: {
+            variants: true,
+          },
+        },
       },
     }),
   ]);
 
   return {
     totalProducts,
-    totalStock: totalStockResult._sum.stock ?? 0,
+
+    totalStock:
+      totalStockResult._sum.stock ?? 0,
+
     lowStock,
+
     outOfStock,
+
     todayScans: 0,
+
     recentScans: recentScans.map((scan) => ({
       id: scan.id,
+
       productId: scan.productId,
+
       barcode: scan.barcode,
+
       action: scan.action,
+
       quantity: scan.quantity,
-      createdAt: scan.createdAt.toISOString(),
+
+      createdAt:
+        scan.createdAt.toISOString(),
+
       product: scan.product
         ? {
             id: scan.product.id,
+
             name: scan.product.name,
-            barcode: scan.product.barcode,
+
+            barcode:
+              scan.product.barcode,
+
             sku: scan.product.sku,
-            description: scan.product.description,
-            price: scan.product.price.toString(),
-            stock: scan.product.stock,
-            location: scan.product.location,
-            imageUrl: scan.product.imageUrl,
-            createdAt: scan.product.createdAt.toISOString(),
-            updatedAt: scan.product.updatedAt.toISOString(),
+
+            description:
+              scan.product.description,
+
+            price:
+              scan.product.price.toString(),
+
+            stock:
+              scan.product.stock,
+
+            location:
+              scan.product.location,
+
+            imageUrl:
+              scan.product.imageUrl,
+
+            category:
+              scan.product.category,
+
+            variants:
+              scan.product.variants.map(
+                (variant) => ({
+                  id: variant.id,
+
+                  productId:
+                    variant.productId,
+
+                  size: variant.size,
+
+                  stock: variant.stock,
+
+                  createdAt:
+                    variant.createdAt.toISOString(),
+
+                  updatedAt:
+                    variant.updatedAt.toISOString(),
+                })
+              ),
+
+            createdAt:
+              scan.product.createdAt.toISOString(),
+
+            updatedAt:
+              scan.product.updatedAt.toISOString(),
           }
         : null,
     })),
