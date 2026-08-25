@@ -3,7 +3,13 @@ import { createProductSchema } from "@/schemas/product";
 
 export async function GET() {
   const products = await prisma.product.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: {
+      createdAt: "desc",
+    },
+
+    include: {
+      variants: true,
+    },
   });
 
   return Response.json(products);
@@ -36,12 +42,42 @@ export async function POST(request: Request) {
 
   const sku = await generateSku();
 
+const { variants = [], ...productData } = result.data;
+
+const totalVariantStock =
+  productData.category === "FASHION"
+    ? variants.reduce(
+        (total, variant) => total + variant.stock,
+        0
+      )
+    : productData.stock;
+
   const product = await prisma.product.create({
     data: {
-      ...result.data,
+      ...productData,
+
       sku,
+
+      stock: totalVariantStock,
+
+      variants:
+        productData.category === "FASHION" &&
+        variants.length > 0
+          ? {
+              create: variants.map((variant) => ({
+                size: variant.size,
+                stock: variant.stock,
+              })),
+            }
+          : undefined,
+    },
+
+    include: {
+      variants: true,
     },
   });
 
-  return Response.json(product, { status: 201 });
+  return Response.json(product, {
+    status: 201,
+  });
 }

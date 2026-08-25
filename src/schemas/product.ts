@@ -1,17 +1,35 @@
 import { z } from "zod";
 
-export const createProductSchema = z.object({
-  name: z.string().min(1, "Product name is required").max(100),
-  barcode: z.string().min(1, "Barcode is required").max(100),
-  sku: z.string().max(100).optional().nullable(),
-  description: z.string().max(5000).optional().nullable(),
-  price: z.coerce.number().min(0, "Price cannot be negative"),
-  stock: z.coerce.number().int().min(0, "Stock cannot be negative").default(0),
-  location: z.string().max(100).optional().nullable(),
-  imageUrl: z.string().url().optional().nullable(),
+const categorySchema = z.enum([
+  "FASHION",
+  "FOOD",
+  "ELECTRONICS",
+  "BEAUTY",
+  "HOME",
+  "OTHER",
+]);
+
+const variantSchema = z.object({
+  size: z.string().trim().min(1),
+  stock: z.number().int().min(0),
 });
 
-export const updateProductSchema = createProductSchema.partial();
+export const createProductSchema = z.object({
+  name: z.string().trim().min(1),
+  barcode: z.string().trim().min(1),
+  description: z.string().nullable().optional(),
+  price: z.number().min(0),
+  stock: z.number().int().min(0),
+  location: z.string().nullable().optional(),
+  imageUrl: z.string().nullable().optional(),
 
-export type CreateProductInput = z.infer<typeof createProductSchema>;
-export type UpdateProductInput = z.infer<typeof updateProductSchema>;
+  category: categorySchema.nullable().optional(),
+
+  variants: z.array(variantSchema).optional(),
+});
+
+export const updateProductSchema = createProductSchema
+  .extend({
+    sku: z.string().nullable().optional(),
+  })
+  .partial();

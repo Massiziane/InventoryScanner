@@ -8,6 +8,10 @@ export type Product = {
   stock: number;
   location: string | null;
   imageUrl: string | null;
+
+  category: ProductCategory | null;
+  variants?: ProductVariant[];
+
   createdAt: string;
   updatedAt: string;
 };
@@ -78,4 +82,21 @@ export type LotItem = {
 export type PendingLotItem = {
   product: Product;
   quantity: number;
+};
+
+export type ProductCategory =
+  | "FASHION"
+  | "FOOD"
+  | "ELECTRONICS"
+  | "BEAUTY"
+  | "HOME"
+  | "OTHER";
+
+export type ProductVariant = {
+  id: string;
+  productId: string;
+  size: string;
+  stock: number;
+  createdAt: string;
+  updatedAt: string;
 };
