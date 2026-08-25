@@ -3,14 +3,22 @@ import { lookupProductFromUpcItemDb } from "@/utils/upcitemdb";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+
   const barcode = searchParams.get("barcode")?.trim();
 
   if (!barcode) {
-    return Response.json({ error: "Barcode is required" }, { status: 400 });
+    return Response.json(
+      { error: "Barcode is required" },
+      { status: 400 }
+    );
   }
 
   const product = await prisma.product.findFirst({
     where: { barcode },
+
+    include: {
+      variants: true,
+    },
   });
 
   if (product) {
@@ -22,7 +30,8 @@ export async function GET(request: Request) {
     });
   }
 
-  const externalProduct = await lookupProductFromUpcItemDb(barcode);
+  const externalProduct =
+    await lookupProductFromUpcItemDb(barcode);
 
   return Response.json({
     found: false,
