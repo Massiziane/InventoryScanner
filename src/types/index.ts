@@ -11,6 +11,7 @@ export type Product = {
 
   category: ProductCategory | null;
   variants?: ProductVariant[];
+  promotions?: ProductPromotion[];
 
   createdAt: string;
   updatedAt: string;
@@ -97,6 +98,18 @@ export type ProductVariant = {
   productId: string;
   size: string;
   stock: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProductPromotion = {
+  id: string;
+  productId: string;
+  quantity: number;
+  price: string;
+  active: boolean;
+  startsAt: string | null;
+  endsAt: string | null;
   createdAt: string;
   updatedAt: string;
 };

@@ -74,6 +74,18 @@ export default function ProductForm({
     })) ?? []
   );
 
+  const [promotionEnabled, setPromotionEnabled] = useState(
+    Boolean(product?.promotions?.[0]?.active)
+  );
+
+  const [promotionQuantity, setPromotionQuantity] = useState(
+    product?.promotions?.[0]?.quantity?.toString() ?? "3"
+  );
+
+  const [promotionPrice, setPromotionPrice] = useState(
+    product?.promotions?.[0]?.price?.toString() ?? "0"
+  );
+
   const [photoFile, setPhotoFile] =
     useState<File | null>(null);
 
@@ -124,6 +136,18 @@ export default function ProductForm({
       })) ?? []
     );
 
+    setPromotionEnabled(
+      Boolean(product?.promotions?.[0]?.active)
+    );
+
+    setPromotionQuantity(
+      product?.promotions?.[0]?.quantity?.toString() ?? "3"
+    );
+
+    setPromotionPrice(
+      product?.promotions?.[0]?.price?.toString() ?? "0"
+    );
+
     setPhotoFile(null);
     setPhotoPreview("");
   }, [product, draft, barcode]);
@@ -131,13 +155,11 @@ export default function ProductForm({
   useEffect(() => {
     async function loadLocations() {
       try {
-        const response =
-          await fetch("/api/locations");
+        const response = await fetch("/api/locations");
 
         if (!response.ok) return;
 
-        const data: string[] =
-          await response.json();
+        const data: string[] = await response.json();
 
         setLocations(data);
       } catch (error) {
@@ -154,9 +176,7 @@ export default function ProductForm({
   useEffect(() => {
     return () => {
       if (photoPreview) {
-        URL.revokeObjectURL(
-          photoPreview
-        );
+        URL.revokeObjectURL(photoPreview);
       }
     };
   }, [photoPreview]);
@@ -164,22 +184,17 @@ export default function ProductForm({
   function handlePhotoChange(
     event: React.ChangeEvent<HTMLInputElement>
   ) {
-    const file =
-      event.target.files?.[0];
+    const file = event.target.files?.[0];
 
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setError(
-        "Please select an image file."
-      );
+      setError("Please select an image file.");
       return;
     }
 
     if (photoPreview) {
-      URL.revokeObjectURL(
-        photoPreview
-      );
+      URL.revokeObjectURL(photoPreview);
     }
 
     setError("");
@@ -192,18 +207,14 @@ export default function ProductForm({
 
   function handleRemoveSelectedPhoto() {
     if (photoPreview) {
-      URL.revokeObjectURL(
-        photoPreview
-      );
+      URL.revokeObjectURL(photoPreview);
     }
 
     setPhotoFile(null);
     setPhotoPreview("");
   }
 
-  async function uploadPhoto(
-    file: File
-  ) {
+  async function uploadPhoto(file: File) {
     const formData = new FormData();
 
     formData.append("file", file);
@@ -250,34 +261,30 @@ export default function ProductForm({
     value: string
   ) {
     setVariants((current) =>
-      current.map(
-        (variant, currentIndex) => {
-          if (currentIndex !== index) {
-            return variant;
-          }
+      current.map((variant, currentIndex) => {
+        if (currentIndex !== index) {
+          return variant;
+        }
 
-          if (field === "stock") {
-            return {
-              ...variant,
-              stock: Math.max(
-                0,
-                Number(value) || 0
-              ),
-            };
-          }
-
+        if (field === "stock") {
           return {
             ...variant,
-            size: value,
+            stock: Math.max(
+              0,
+              Number(value) || 0
+            ),
           };
         }
-      )
+
+        return {
+          ...variant,
+          size: value,
+        };
+      })
     );
   }
 
-  function removeSize(
-    index: number
-  ) {
+  function removeSize(index: number) {
     setVariants((current) =>
       current.filter(
         (_, currentIndex) =>
@@ -307,8 +314,7 @@ export default function ProductForm({
           ? variants
               .filter(
                 (variant) =>
-                  variant.size.trim()
-                    .length > 0
+                  variant.size.trim().length > 0
               )
               .map((variant) => ({
                 size: variant.size.trim(),
@@ -326,8 +332,19 @@ export default function ProductForm({
           0
         );
 
+      const cleanedPromotionQuantity = Math.max(
+        2,
+        Number(promotionQuantity) || 2
+      );
+
+      const cleanedPromotionPrice = Math.max(
+        0,
+        Number(promotionPrice) || 0
+      );
+
       const payload = {
         name,
+
         barcode: productBarcode,
 
         ...(mode === "update"
@@ -358,6 +375,21 @@ export default function ProductForm({
 
         variants:
           cleanedVariants,
+
+        promotions:
+          promotionEnabled
+            ? [
+                {
+                  quantity:
+                    cleanedPromotionQuantity,
+
+                  price:
+                    cleanedPromotionPrice,
+
+                  active: true,
+                },
+              ]
+            : [],
       };
 
       const url =
@@ -458,6 +490,18 @@ export default function ProductForm({
       0
     );
 
+  const promotionPreviewQuantity =
+    Math.max(
+      2,
+      Number(promotionQuantity) || 2
+    );
+
+  const promotionPreviewPrice =
+    Math.max(
+      0,
+      Number(promotionPrice) || 0
+    );
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -548,13 +592,112 @@ export default function ProductForm({
 
       <Input
         name="price"
-        label="Price"
+        label="Regular price"
         type="number"
         step="0.01"
         value={price}
         onChange={setPrice}
         required
       />
+
+      <section className="space-y-4 rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]/40 p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="font-black text-[var(--app-text)]">
+              Special pricing
+            </p>
+
+            <p className="mt-1 text-xs text-[var(--app-muted)]">
+              Create a bundle sale such as 3 for $10.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              setPromotionEnabled(
+                (current) => !current
+              )
+            }
+            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-black transition ${
+              promotionEnabled
+                ? "bg-cyan-300 text-slate-950"
+                : "border border-cyan-400/20 bg-cyan-400/10 text-cyan-300"
+            }`}
+          >
+            {promotionEnabled
+              ? "Enabled"
+              : "Enable"}
+          </button>
+        </div>
+
+        {promotionEnabled && (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-slate-300">
+                  Quantity
+                </span>
+
+                <input
+                  type="number"
+                  min={2}
+                  value={
+                    promotionQuantity
+                  }
+                  onChange={(event) =>
+                    setPromotionQuantity(
+                      event.target.value
+                    )
+                  }
+                  className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)] px-4 py-4 text-[var(--app-text)] outline-none transition focus:border-cyan-300"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-slate-300">
+                  Bundle price
+                </span>
+
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={
+                    promotionPrice
+                  }
+                  onChange={(event) =>
+                    setPromotionPrice(
+                      event.target.value
+                    )
+                  }
+                  className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)] px-4 py-4 text-[var(--app-text)] outline-none transition focus:border-cyan-300"
+                />
+              </label>
+            </div>
+
+            <div className="rounded-xl border border-cyan-400/10 bg-cyan-400/5 p-3">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+                Promotion Preview
+              </p>
+
+              <p className="mt-1 text-lg font-black text-[var(--app-text)]">
+                {promotionPreviewQuantity} for $
+                {promotionPreviewPrice.toFixed(2)}
+              </p>
+
+              <p className="mt-1 text-xs text-[var(--app-muted)]">
+                Regular unit price remains $
+                {Math.max(
+                  0,
+                  Number(price) || 0
+                ).toFixed(2)}
+                .
+              </p>
+            </div>
+          </>
+        )}
+      </section>
 
       <CategoryInput
         value={category}
@@ -593,8 +736,7 @@ export default function ProductForm({
             </button>
           </div>
 
-          {variants.length ===
-            0 && (
+          {variants.length === 0 && (
             <div className="rounded-xl border border-cyan-400/10 p-3 text-sm text-[var(--app-muted)]">
               No sizes added yet.
             </div>
@@ -663,17 +805,14 @@ export default function ProductForm({
             )
           )}
 
-          {variants.length >
-            0 && (
+          {variants.length > 0 && (
             <div className="flex items-center justify-between border-t border-cyan-400/10 pt-3">
               <span className="text-sm font-bold text-[var(--app-muted)]">
                 Total fashion stock
               </span>
 
               <span className="text-lg font-black text-cyan-300">
-                {
-                  totalVariantStock
-                }
+                {totalVariantStock}
               </span>
             </div>
           )}
@@ -735,6 +874,7 @@ function CategoryInput({
   value:
     | ProductCategory
     | "";
+
   onChange: (
     value:
       | ProductCategory
@@ -751,8 +891,7 @@ function CategoryInput({
         value={value}
         onChange={(event) =>
           onChange(
-            event.target
-              .value as
+            event.target.value as
               | ProductCategory
               | ""
           )
@@ -798,6 +937,7 @@ function LocationInput({
 }: {
   value: string;
   locations: string[];
+
   onChange: (
     value: string
   ) => void;
@@ -850,8 +990,7 @@ function LocationInput({
             event
           ) => {
             const selected =
-              event.target
-                .value;
+              event.target.value;
 
             if (
               selected ===
@@ -930,6 +1069,7 @@ function Input({
   required?: boolean;
   step?: string;
   value: string;
+
   onChange: (
     value: string
   ) => void;
