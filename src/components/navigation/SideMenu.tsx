@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   Boxes,
+  CircleDollarSign,
   History,
   Home,
   Menu,
@@ -18,6 +19,11 @@ const links = [
   { href: "/scan", label: "Scanner", icon: ScanLine },
   { href: "/products", label: "Products", icon: Boxes },
   { href: "/history", label: "History", icon: History },
+  {
+    href: "/finances",
+    label: "Finances",
+    icon: CircleDollarSign,
+  },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
