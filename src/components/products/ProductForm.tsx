@@ -58,6 +58,8 @@ export default function ProductForm({
 
   const [locations, setLocations] = useState<string[]>([]);
 
+  const [productNames, setProductNames] = useState<string[]>([]);
+
   const [imageUrl, setImageUrl] = useState(
     product?.imageUrl ?? draft?.imageUrl ?? ""
   );
@@ -93,13 +95,21 @@ export default function ProductForm({
     useState("");
 
   useEffect(() => {
-    setName(product?.name ?? draft?.name ?? "");
-
-    setProductBarcode(
-      product?.barcode ?? draft?.barcode ?? barcode
+    setName(
+      product?.name ??
+        draft?.name ??
+        ""
     );
 
-    setSku(product?.sku ?? "");
+    setProductBarcode(
+      product?.barcode ??
+        draft?.barcode ??
+        barcode
+    );
+
+    setSku(
+      product?.sku ?? ""
+    );
 
     setDescription(
       product?.description ??
@@ -108,11 +118,13 @@ export default function ProductForm({
     );
 
     setPrice(
-      product?.price?.toString() ?? "0"
+      product?.price?.toString() ??
+        "0"
     );
 
     setStock(
-      product?.stock?.toString() ?? "0"
+      product?.stock?.toString() ??
+        "0"
     );
 
     setLocation(
@@ -137,15 +149,19 @@ export default function ProductForm({
     );
 
     setPromotionEnabled(
-      Boolean(product?.promotions?.[0]?.active)
+      Boolean(
+        product?.promotions?.[0]?.active
+      )
     );
 
     setPromotionQuantity(
-      product?.promotions?.[0]?.quantity?.toString() ?? "3"
+      product?.promotions?.[0]?.quantity?.toString() ??
+        "3"
     );
 
     setPromotionPrice(
-      product?.promotions?.[0]?.price?.toString() ?? "0"
+      product?.promotions?.[0]?.price?.toString() ??
+        "0"
     );
 
     setPhotoFile(null);
@@ -155,11 +171,13 @@ export default function ProductForm({
   useEffect(() => {
     async function loadLocations() {
       try {
-        const response = await fetch("/api/locations");
+        const response =
+          await fetch("/api/locations");
 
         if (!response.ok) return;
 
-        const data: string[] = await response.json();
+        const data: string[] =
+          await response.json();
 
         setLocations(data);
       } catch (error) {
@@ -174,9 +192,34 @@ export default function ProductForm({
   }, []);
 
   useEffect(() => {
+    async function loadProductNames() {
+      try {
+        const response =
+          await fetch("/api/products/names");
+
+        if (!response.ok) return;
+
+        const data: string[] =
+          await response.json();
+
+        setProductNames(data);
+      } catch (error) {
+        console.error(
+          "Could not load product names:",
+          error
+        );
+      }
+    }
+
+    loadProductNames();
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (photoPreview) {
-        URL.revokeObjectURL(photoPreview);
+        URL.revokeObjectURL(
+          photoPreview
+        );
       }
     };
   }, [photoPreview]);
@@ -184,17 +227,26 @@ export default function ProductForm({
   function handlePhotoChange(
     event: React.ChangeEvent<HTMLInputElement>
   ) {
-    const file = event.target.files?.[0];
+    const file =
+      event.target.files?.[0];
 
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      setError("Please select an image file.");
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
+      setError(
+        "Please select an image file."
+      );
       return;
     }
 
     if (photoPreview) {
-      URL.revokeObjectURL(photoPreview);
+      URL.revokeObjectURL(
+        photoPreview
+      );
     }
 
     setError("");
@@ -207,30 +259,40 @@ export default function ProductForm({
 
   function handleRemoveSelectedPhoto() {
     if (photoPreview) {
-      URL.revokeObjectURL(photoPreview);
+      URL.revokeObjectURL(
+        photoPreview
+      );
     }
 
     setPhotoFile(null);
     setPhotoPreview("");
   }
 
-  async function uploadPhoto(file: File) {
-    const formData = new FormData();
+  async function uploadPhoto(
+    file: File
+  ) {
+    const formData =
+      new FormData();
 
-    formData.append("file", file);
-
-    const response = await fetch(
-      "/api/upload/product-image",
-      {
-        method: "POST",
-        body: formData,
-      }
+    formData.append(
+      "file",
+      file
     );
 
+    const response =
+      await fetch(
+        "/api/upload/product-image",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
     if (!response.ok) {
-      const data = await response
-        .json()
-        .catch(() => null);
+      const data =
+        await response
+          .json()
+          .catch(() => null);
 
       throw new Error(
         data?.error ??
@@ -261,33 +323,48 @@ export default function ProductForm({
     value: string
   ) {
     setVariants((current) =>
-      current.map((variant, currentIndex) => {
-        if (currentIndex !== index) {
-          return variant;
-        }
+      current.map(
+        (
+          variant,
+          currentIndex
+        ) => {
+          if (
+            currentIndex !== index
+          ) {
+            return variant;
+          }
 
-        if (field === "stock") {
+          if (
+            field === "stock"
+          ) {
+            return {
+              ...variant,
+
+              stock: Math.max(
+                0,
+                Number(value) || 0
+              ),
+            };
+          }
+
           return {
             ...variant,
-            stock: Math.max(
-              0,
-              Number(value) || 0
-            ),
+            size: value,
           };
         }
-
-        return {
-          ...variant,
-          size: value,
-        };
-      })
+      )
     );
   }
 
-  function removeSize(index: number) {
+  function removeSize(
+    index: number
+  ) {
     setVariants((current) =>
       current.filter(
-        (_, currentIndex) =>
+        (
+          _,
+          currentIndex
+        ) =>
           currentIndex !== index
       )
     );
@@ -302,11 +379,14 @@ export default function ProductForm({
     setIsSaving(true);
 
     try {
-      let finalImageUrl = imageUrl;
+      let finalImageUrl =
+        imageUrl;
 
       if (photoFile) {
         finalImageUrl =
-          await uploadPhoto(photoFile);
+          await uploadPhoto(
+            photoFile
+          );
       }
 
       const cleanedVariants =
@@ -314,42 +394,61 @@ export default function ProductForm({
           ? variants
               .filter(
                 (variant) =>
-                  variant.size.trim().length > 0
+                  variant.size
+                    .trim()
+                    .length > 0
               )
-              .map((variant) => ({
-                size: variant.size.trim(),
-                stock: Math.max(
-                  0,
-                  variant.stock
-                ),
-              }))
+              .map(
+                (variant) => ({
+                  size:
+                    variant.size.trim(),
+
+                  stock:
+                    Math.max(
+                      0,
+                      variant.stock
+                    ),
+                })
+              )
           : [];
 
       const totalVariantStock =
         cleanedVariants.reduce(
-          (total, variant) =>
-            total + variant.stock,
+          (
+            total,
+            variant
+          ) =>
+            total +
+            variant.stock,
           0
         );
 
-      const cleanedPromotionQuantity = Math.max(
-        2,
-        Number(promotionQuantity) || 2
-      );
+      const cleanedPromotionQuantity =
+        Math.max(
+          2,
+          Number(
+            promotionQuantity
+          ) || 2
+        );
 
-      const cleanedPromotionPrice = Math.max(
-        0,
-        Number(promotionPrice) || 0
-      );
+      const cleanedPromotionPrice =
+        Math.max(
+          0,
+          Number(
+            promotionPrice
+          ) || 0
+        );
 
       const payload = {
         name,
 
-        barcode: productBarcode,
+        barcode:
+          productBarcode,
 
         ...(mode === "update"
           ? {
-              sku: sku || null,
+              sku:
+                sku || null,
             }
           : {}),
 
@@ -357,18 +456,25 @@ export default function ProductForm({
           description || null,
 
         price:
-          Number(price || 0),
+          Number(
+            price || 0
+          ),
 
         stock:
-          category === "FASHION"
+          category ===
+          "FASHION"
             ? totalVariantStock
-            : Number(stock || 0),
+            : Number(
+                stock || 0
+              ),
 
         location:
-          location.trim() || null,
+          location.trim() ||
+          null,
 
         imageUrl:
-          finalImageUrl || null,
+          finalImageUrl ||
+          null,
 
         category:
           category || null,
@@ -386,7 +492,8 @@ export default function ProductForm({
                   price:
                     cleanedPromotionPrice,
 
-                  active: true,
+                  active:
+                    true,
                 },
               ]
             : [],
@@ -404,30 +511,36 @@ export default function ProductForm({
           ? "PATCH"
           : "POST";
 
-      const response = await fetch(
-        url,
-        {
-          method,
+      const response =
+        await fetch(
+          url,
+          {
+            method,
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-          body: JSON.stringify(
-            payload
-          ),
-        }
-      );
+            body:
+              JSON.stringify(
+                payload
+              ),
+          }
+        );
 
       if (!response.ok) {
         const data =
           await response.json();
 
-        console.error(data);
+        console.error(
+          data
+        );
 
         setError(
-          JSON.stringify(data)
+          JSON.stringify(
+            data
+          )
         );
 
         return;
@@ -437,7 +550,8 @@ export default function ProductForm({
         await response.json();
 
       setImageUrl(
-        savedProduct.imageUrl ?? ""
+        savedProduct.imageUrl ??
+          ""
       );
 
       setPhotoFile(null);
@@ -456,19 +570,47 @@ export default function ProductForm({
           savedProduct.location
         )
       ) {
-        setLocations((current) =>
-          [
-            ...current,
-            savedProduct.location as string,
-          ].sort((a, b) =>
-            a.localeCompare(b)
-          )
+        setLocations(
+          (current) =>
+            [
+              ...current,
+              savedProduct.location as string,
+            ].sort(
+              (a, b) =>
+                a.localeCompare(
+                  b
+                )
+            )
         );
       }
 
-      onSaved?.(savedProduct);
+      if (
+        savedProduct.name &&
+        !productNames.includes(
+          savedProduct.name
+        )
+      ) {
+        setProductNames(
+          (current) =>
+            [
+              ...current,
+              savedProduct.name,
+            ].sort(
+              (a, b) =>
+                a.localeCompare(
+                  b
+                )
+            )
+        );
+      }
+
+      onSaved?.(
+        savedProduct
+      );
     } catch (error) {
-      console.error(error);
+      console.error(
+        error
+      );
 
       setError(
         error instanceof Error
@@ -481,30 +623,41 @@ export default function ProductForm({
   }
 
   const displayedImage =
-    photoPreview || imageUrl;
+    photoPreview ||
+    imageUrl;
 
   const totalVariantStock =
     variants.reduce(
-      (total, variant) =>
-        total + variant.stock,
+      (
+        total,
+        variant
+      ) =>
+        total +
+        variant.stock,
       0
     );
 
   const promotionPreviewQuantity =
     Math.max(
       2,
-      Number(promotionQuantity) || 2
+      Number(
+        promotionQuantity
+      ) || 2
     );
 
   const promotionPreviewPrice =
     Math.max(
       0,
-      Number(promotionPrice) || 0
+      Number(
+        promotionPrice
+      ) || 0
     );
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={
+        handleSubmit
+      }
       className="space-y-3 rounded-3xl border border-cyan-400/10 bg-[var(--app-bg)] p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]"
     >
       <div className="space-y-3">
@@ -515,7 +668,9 @@ export default function ProductForm({
         {displayedImage && (
           <div className="overflow-hidden rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]">
             <img
-              src={displayedImage}
+              src={
+                displayedImage
+              }
               alt={
                 name ||
                 "Product image"
@@ -554,25 +709,26 @@ export default function ProductForm({
         )}
       </div>
 
-      <Input
-        name="name"
-        label="Product name"
+      <ProductNameInput
         value={name}
+        names={productNames}
         onChange={setName}
-        required
       />
 
       <Input
         name="barcode"
         label="Barcode"
-        value={productBarcode}
+        value={
+          productBarcode
+        }
         onChange={
           setProductBarcode
         }
         required
       />
 
-      {mode === "update" && (
+      {mode ===
+        "update" && (
         <Input
           name="sku"
           label="SKU"
@@ -584,7 +740,9 @@ export default function ProductForm({
       <Input
         name="description"
         label="Description"
-        value={description}
+        value={
+          description
+        }
         onChange={
           setDescription
         }
@@ -616,7 +774,8 @@ export default function ProductForm({
             type="button"
             onClick={() =>
               setPromotionEnabled(
-                (current) => !current
+                (current) =>
+                  !current
               )
             }
             className={`shrink-0 rounded-xl px-4 py-2 text-sm font-black transition ${
@@ -645,9 +804,13 @@ export default function ProductForm({
                   value={
                     promotionQuantity
                   }
-                  onChange={(event) =>
+                  onChange={(
+                    event
+                  ) =>
                     setPromotionQuantity(
-                      event.target.value
+                      event
+                        .target
+                        .value
                     )
                   }
                   className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)] px-4 py-4 text-[var(--app-text)] outline-none transition focus:border-cyan-300"
@@ -666,9 +829,13 @@ export default function ProductForm({
                   value={
                     promotionPrice
                   }
-                  onChange={(event) =>
+                  onChange={(
+                    event
+                  ) =>
                     setPromotionPrice(
-                      event.target.value
+                      event
+                        .target
+                        .value
                     )
                   }
                   className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)] px-4 py-4 text-[var(--app-text)] outline-none transition focus:border-cyan-300"
@@ -682,15 +849,23 @@ export default function ProductForm({
               </p>
 
               <p className="mt-1 text-lg font-black text-[var(--app-text)]">
-                {promotionPreviewQuantity} for $
-                {promotionPreviewPrice.toFixed(2)}
+                {
+                  promotionPreviewQuantity
+                }{" "}
+                for $
+                {promotionPreviewPrice.toFixed(
+                  2
+                )}
               </p>
 
               <p className="mt-1 text-xs text-[var(--app-muted)]">
-                Regular unit price remains $
+                Regular unit
+                price remains $
                 {Math.max(
                   0,
-                  Number(price) || 0
+                  Number(
+                    price
+                  ) || 0
                 ).toFixed(2)}
                 .
               </p>
@@ -701,13 +876,20 @@ export default function ProductForm({
 
       <CategoryInput
         value={category}
-        onChange={(value) => {
-          setCategory(value);
+        onChange={(
+          value
+        ) => {
+          setCategory(
+            value
+          );
 
           if (
-            value !== "FASHION"
+            value !==
+            "FASHION"
           ) {
-            setVariants([]);
+            setVariants(
+              []
+            );
           }
         }}
       />
@@ -722,23 +904,28 @@ export default function ProductForm({
               </p>
 
               <p className="mt-1 text-xs text-[var(--app-muted)]">
-                Enter each size and
-                the quantity available.
+                Enter each
+                size and the
+                quantity available.
               </p>
             </div>
 
             <button
               type="button"
-              onClick={addSize}
+              onClick={
+                addSize
+              }
               className="shrink-0 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-sm font-black text-cyan-300 transition hover:border-cyan-400/40"
             >
               + Add Size
             </button>
           </div>
 
-          {variants.length === 0 && (
+          {variants.length ===
+            0 && (
             <div className="rounded-xl border border-cyan-400/10 p-3 text-sm text-[var(--app-muted)]">
-              No sizes added yet.
+              No sizes added
+              yet.
             </div>
           )}
 
@@ -748,7 +935,9 @@ export default function ProductForm({
               index
             ) => (
               <div
-                key={index}
+                key={
+                  index
+                }
                 className="grid grid-cols-[minmax(0,1fr)_90px_44px] gap-2"
               >
                 <input
@@ -761,7 +950,8 @@ export default function ProductForm({
                     updateSize(
                       index,
                       "size",
-                      event.target
+                      event
+                        .target
                         .value
                     )
                   }
@@ -781,7 +971,8 @@ export default function ProductForm({
                     updateSize(
                       index,
                       "stock",
-                      event.target
+                      event
+                        .target
                         .value
                     )
                   }
@@ -805,14 +996,18 @@ export default function ProductForm({
             )
           )}
 
-          {variants.length > 0 && (
+          {variants.length >
+            0 && (
             <div className="flex items-center justify-between border-t border-cyan-400/10 pt-3">
               <span className="text-sm font-bold text-[var(--app-muted)]">
-                Total fashion stock
+                Total fashion
+                stock
               </span>
 
               <span className="text-lg font-black text-cyan-300">
-                {totalVariantStock}
+                {
+                  totalVariantStock
+                }
               </span>
             </div>
           )}
@@ -826,22 +1021,30 @@ export default function ProductForm({
           label="Stock"
           type="number"
           value={stock}
-          onChange={setStock}
+          onChange={
+            setStock
+          }
           required
         />
       )}
 
       <LocationInput
         value={location}
-        locations={locations}
-        onChange={setLocation}
+        locations={
+          locations
+        }
+        onChange={
+          setLocation
+        }
       />
 
       <Input
         name="imageUrl"
         label="Image URL"
         value={imageUrl}
-        onChange={setImageUrl}
+        onChange={
+          setImageUrl
+        }
       />
 
       {error && (
@@ -852,18 +1055,147 @@ export default function ProductForm({
 
       <button
         type="submit"
-        disabled={isSaving}
+        disabled={
+          isSaving
+        }
         className="w-full rounded-2xl bg-cyan-300 py-4 font-black text-slate-950 disabled:opacity-60"
       >
         {isSaving
           ? photoFile
             ? "Uploading & Saving..."
             : "Saving..."
-          : mode === "update"
+          : mode ===
+              "update"
             ? "Modify product"
             : "Create product"}
       </button>
     </form>
+  );
+}
+
+function ProductNameInput({
+  value,
+  names,
+  onChange,
+}: {
+  value: string;
+  names: string[];
+  onChange: (
+    value: string
+  ) => void;
+}) {
+  const [
+    isOpen,
+    setIsOpen,
+  ] = useState(false);
+
+  const normalizedValue =
+    value
+      .trim()
+      .toLowerCase();
+
+  const filteredNames =
+    names
+      .filter(
+        (
+          existingName
+        ) => {
+          if (
+            !normalizedValue
+          ) {
+            return true;
+          }
+
+          return existingName
+            .toLowerCase()
+            .includes(
+              normalizedValue
+            );
+        }
+      )
+      .slice(0, 8);
+
+  return (
+    <div className="relative">
+      <label className="block">
+        <span className="mb-2 block text-sm font-bold text-slate-300">
+          Product name
+        </span>
+
+        <input
+          name="name"
+          value={value}
+          required
+          autoComplete="off"
+          placeholder="Enter product name"
+          onFocus={() =>
+            setIsOpen(
+              true
+            )
+          }
+          onChange={(
+            event
+          ) => {
+            onChange(
+              event.target
+                .value
+            );
+
+            setIsOpen(
+              true
+            );
+          }}
+          onBlur={() => {
+            window.setTimeout(
+              () => {
+                setIsOpen(
+                  false
+                );
+              },
+              150
+            );
+          }}
+          className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)] px-4 py-4 text-[var(--app-text)] outline-none transition placeholder:text-slate-600 focus:border-cyan-300"
+        />
+      </label>
+
+      {isOpen &&
+        filteredNames.length >
+          0 && (
+          <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-64 overflow-y-auto rounded-2xl border border-cyan-400/20 bg-[var(--app-bg)] p-2 shadow-2xl">
+            {filteredNames.map(
+              (
+                existingName
+              ) => (
+                <button
+                  key={
+                    existingName
+                  }
+                  type="button"
+                  onMouseDown={(
+                    event
+                  ) => {
+                    event.preventDefault();
+
+                    onChange(
+                      existingName
+                    );
+
+                    setIsOpen(
+                      false
+                    );
+                  }}
+                  className="flex w-full items-center rounded-xl px-4 py-3 text-left text-sm font-bold text-[var(--app-text)] transition hover:bg-cyan-400/10 hover:text-cyan-300"
+                >
+                  {
+                    existingName
+                  }
+                </button>
+              )
+            )}
+          </div>
+        )}
+    </div>
   );
 }
 
@@ -889,9 +1221,12 @@ function CategoryInput({
 
       <select
         value={value}
-        onChange={(event) =>
+        onChange={(
+          event
+        ) =>
           onChange(
-            event.target.value as
+            event.target
+              .value as
               | ProductCategory
               | ""
           )
@@ -956,7 +1291,9 @@ function LocationInput({
 
   useEffect(() => {
     if (!value) {
-      setIsCustom(false);
+      setIsCustom(
+        false
+      );
       return;
     }
 
@@ -965,15 +1302,21 @@ function LocationInput({
         value
       )
     ) {
-      setIsCustom(true);
+      setIsCustom(
+        true
+      );
     }
-  }, [value, locations]);
+  }, [
+    value,
+    locations,
+  ]);
 
   return (
     <div className="space-y-2">
       <label className="block">
         <span className="mb-2 block text-sm font-bold text-slate-300">
-          Location / placement
+          Location /
+          placement
         </span>
 
         <select
@@ -990,19 +1333,31 @@ function LocationInput({
             event
           ) => {
             const selected =
-              event.target.value;
+              event.target
+                .value;
 
             if (
               selected ===
               "__custom__"
             ) {
-              setIsCustom(true);
-              onChange("");
+              setIsCustom(
+                true
+              );
+
+              onChange(
+                ""
+              );
+
               return;
             }
 
-            setIsCustom(false);
-            onChange(selected);
+            setIsCustom(
+              false
+            );
+
+            onChange(
+              selected
+            );
           }}
           className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)] px-4 py-4 text-[var(--app-text)] outline-none transition focus:border-cyan-300"
         >
@@ -1030,7 +1385,8 @@ function LocationInput({
           )}
 
           <option value="__custom__">
-            + Add new location
+            + Add new
+            location
           </option>
         </select>
       </label>
@@ -1042,7 +1398,8 @@ function LocationInput({
             event
           ) =>
             onChange(
-              event.target.value
+              event.target
+                .value
             )
           }
           placeholder="Enter new location"
@@ -1084,11 +1441,16 @@ function Input({
         name={name}
         type={type}
         step={step}
-        required={required}
+        required={
+          required
+        }
         value={value}
-        onChange={(event) =>
+        onChange={(
+          event
+        ) =>
           onChange(
-            event.target.value
+            event.target
+              .value
           )
         }
         className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)] px-4 py-4 text-[var(--app-text)] outline-none transition placeholder:text-slate-600 focus:border-cyan-300"
