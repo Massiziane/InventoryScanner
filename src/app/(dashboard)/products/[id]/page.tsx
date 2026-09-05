@@ -1,9 +1,20 @@
 import EmptyState from "@/components/ui/EmptyState";
 import GlassCard from "@/components/ui/GlassCard";
 import PageShell from "@/components/ui/PageShell";
+
+import ProductEditPanel from "@/components/products/ProductEditPanel";
+
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MapPin, Package, Tag, ImageIcon } from "lucide-react";
+
+import {
+  ArrowLeft,
+  MapPin,
+  Package,
+  Tag,
+  ImageIcon,
+} from "lucide-react";
+
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -14,8 +25,12 @@ type ProductPageProps = {
   }>;
 };
 
-function categoryLabel(category: string | null) {
-  if (!category) return "Uncategorized";
+function categoryLabel(
+  category: string | null
+) {
+  if (!category) {
+    return "Uncategorized";
+  }
 
   return category
     .toLowerCase()
@@ -28,10 +43,21 @@ function categoryLabel(category: string | null) {
     .join(" ");
 }
 
-function actionLabel(action: string) {
-  if (action === "ADD_STOCK") return "Added stock";
-  if (action === "REMOVE_STOCK") return "Removed stock";
-  if (action === "SALE") return "Sale";
+function actionLabel(
+  action: string
+) {
+  if (action === "ADD_STOCK") {
+    return "Added stock";
+  }
+
+  if (action === "REMOVE_STOCK") {
+    return "Removed stock";
+  }
+
+  if (action === "SALE") {
+    return "Sale";
+  }
+
   return "Checked";
 }
 
@@ -40,32 +66,34 @@ export default async function ProductPage({
 }: ProductPageProps) {
   const { id } = await params;
 
-  const product = await prisma.product.findUnique({
-    where: {
-      id,
-    },
-
-    include: {
-      variants: {
-        orderBy: {
-          size: "asc",
-        },
+  const product =
+    await prisma.product.findUnique({
+      where: {
+        id,
       },
 
-      promotions: {
-        orderBy: {
-          createdAt: "desc",
+      include: {
+        variants: {
+          orderBy: {
+            size: "asc",
+          },
         },
-      },
 
-      scans: {
-        orderBy: {
-          createdAt: "desc",
+        promotions: {
+          orderBy: {
+            createdAt: "desc",
+          },
         },
-        take: 10,
+
+        scans: {
+          orderBy: {
+            createdAt: "desc",
+          },
+
+          take: 10,
+        },
       },
-    },
-  });
+    });
 
   if (!product) {
     notFound();
@@ -73,8 +101,82 @@ export default async function ProductPage({
 
   const activePromotions =
     product.promotions.filter(
-      (promotion) => promotion.active
+      (promotion) =>
+        promotion.active
     );
+
+  /*
+   * Only pass the fields ProductForm actually needs
+   * into the client-side edit component.
+   *
+   * Prisma Decimal objects are converted to numbers
+   * so they can safely cross the server/client boundary.
+   */
+  const editableProduct = {
+    id: product.id,
+
+    name: product.name,
+
+    barcode:
+      product.barcode,
+
+    sku:
+      product.sku,
+
+    description:
+      product.description,
+
+    price:
+      Number(product.price),
+
+    stock:
+      product.stock,
+
+    location:
+      product.location,
+
+    imageUrl:
+      product.imageUrl,
+
+    category:
+      product.category,
+
+    variants:
+      product.variants.map(
+        (variant) => ({
+          id:
+            variant.id,
+
+          size:
+            variant.size,
+
+          stock:
+            variant.stock,
+
+          barcode:
+            variant.barcode,
+        })
+      ),
+
+    promotions:
+      product.promotions.map(
+        (promotion) => ({
+          id:
+            promotion.id,
+
+          quantity:
+            promotion.quantity,
+
+          price:
+            Number(
+              promotion.price
+            ),
+
+          active:
+            promotion.active,
+        })
+      ),
+  };
 
   return (
     <PageShell>
@@ -83,6 +185,7 @@ export default async function ProductPage({
         className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 transition hover:text-cyan-300"
       >
         <ArrowLeft size={16} />
+
         Back to products
       </Link>
 
@@ -94,26 +197,36 @@ export default async function ProductPage({
                 className="inline-flex cursor-pointer list-none items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-cyan-300 transition hover:bg-cyan-400/20"
                 title="View product photo"
               >
-                <ImageIcon size={20} />
+                <ImageIcon
+                  size={20}
+                />
               </summary>
 
               <div className="mt-3 overflow-hidden rounded-3xl border border-cyan-400/10 bg-[var(--app-panel)]">
                 <img
-                  src={product.imageUrl}
-                  alt={product.name}
+                  src={
+                    product.imageUrl
+                  }
+                  alt={
+                    product.name
+                  }
                   className="h-64 w-full object-contain p-5"
                 />
               </div>
             </details>
           )}
+
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-300">
-                {product.sku ?? "No SKU"}
+                {product.sku ??
+                  "No SKU"}
               </p>
 
               <span className="rounded-full border border-cyan-400/10 bg-cyan-400/5 px-3 py-1 text-xs font-bold text-slate-400">
-                {categoryLabel(product.category)}
+                {categoryLabel(
+                  product.category
+                )}
               </span>
             </div>
 
@@ -148,7 +261,9 @@ export default async function ProductPage({
 
             {product.description && (
               <p className="mt-5 text-sm leading-6 text-slate-300">
-                {product.description}
+                {
+                  product.description
+                }
               </p>
             )}
           </div>
@@ -161,7 +276,9 @@ export default async function ProductPage({
 
               <p className="mt-1 text-2xl font-black text-[var(--app-text)]">
                 $
-                {Number(product.price).toFixed(2)}
+                {Number(
+                  product.price
+                ).toFixed(2)}
               </p>
             </div>
 
@@ -176,7 +293,8 @@ export default async function ProductPage({
             </div>
           </div>
 
-          {activePromotions.length > 0 && (
+          {activePromotions.length >
+            0 && (
             <section className="space-y-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
@@ -192,11 +310,16 @@ export default async function ProductPage({
                 {activePromotions.map(
                   (promotion) => (
                     <div
-                      key={promotion.id}
+                      key={
+                        promotion.id
+                      }
                       className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-3"
                     >
                       <p className="text-lg font-black text-cyan-300">
-                        {promotion.quantity} for $
+                        {
+                          promotion.quantity
+                        }{" "}
+                        for $
                         {Number(
                           promotion.price
                         ).toFixed(2)}
@@ -216,7 +339,8 @@ export default async function ProductPage({
             </section>
           )}
 
-          {product.category === "FASHION" && (
+          {product.category ===
+            "FASHION" && (
             <section className="space-y-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-300">
@@ -228,32 +352,49 @@ export default async function ProductPage({
                 </h2>
               </div>
 
-              {product.variants.length ===
-              0 ? (
+              {product.variants
+                .length === 0 ? (
                 <EmptyState title="No sizes configured." />
               ) : (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {product.variants.map(
                     (variant) => (
                       <div
-                        key={variant.id}
+                        key={
+                          variant.id
+                        }
                         className="rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]/70 p-4"
                       >
                         <p className="text-lg font-black text-[var(--app-text)]">
-                          {variant.size}
+                          {
+                            variant.size
+                          }
                         </p>
 
                         <p
                           className={`mt-2 text-sm font-bold ${
-                            variant.stock === 0
+                            variant.stock ===
+                            0
                               ? "text-red-300"
-                              : variant.stock <= 5
+                              : variant.stock <=
+                                  5
                                 ? "text-amber-300"
                                 : "text-cyan-300"
                           }`}
                         >
-                          {variant.stock} in stock
+                          {
+                            variant.stock
+                          }{" "}
+                          in stock
                         </p>
+
+                        {variant.barcode && (
+                          <p className="mt-2 break-all text-xs text-slate-500">
+                            {
+                              variant.barcode
+                            }
+                          </p>
+                        )}
                       </div>
                     )
                   )}
@@ -263,6 +404,14 @@ export default async function ProductPage({
           )}
         </div>
       </GlassCard>
+
+      {/* Product editing */}
+
+      <ProductEditPanel
+        product={
+          editableProduct
+        }
+      />
 
       <GlassCard>
         <div className="flex items-center gap-2">
@@ -277,40 +426,52 @@ export default async function ProductPage({
         </div>
 
         <div className="mt-4 space-y-3">
-          {product.scans.length === 0 ? (
+          {product.scans.length ===
+          0 ? (
             <EmptyState title="No scans yet." />
           ) : (
-            product.scans.map((scan) => (
-              <div
-                key={scan.id}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]/70 p-4"
-              >
-                <div className="min-w-0">
-                  <p className="font-black text-[var(--app-text)]">
-                    {actionLabel(scan.action)}
-                  </p>
+            product.scans.map(
+              (scan) => (
+                <div
+                  key={
+                    scan.id
+                  }
+                  className="flex items-center justify-between gap-4 rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]/70 p-4"
+                >
+                  <div className="min-w-0">
+                    <p className="font-black text-[var(--app-text)]">
+                      {actionLabel(
+                        scan.action
+                      )}
+                    </p>
 
-                  <p className="mt-1 text-xs text-slate-500">
-                    {scan.createdAt.toLocaleString()}
+                    <p className="mt-1 text-xs text-slate-500">
+                      {scan.createdAt.toLocaleString()}
+                    </p>
+                  </div>
+
+                  <p
+                    className={`shrink-0 rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wide ${
+                      scan.action ===
+                        "SALE" ||
+                      scan.action ===
+                        "REMOVE_STOCK"
+                        ? "border-red-400/20 bg-red-500/10 text-red-300"
+                        : "border-cyan-400/20 bg-cyan-400/10 text-cyan-300"
+                    }`}
+                  >
+                    Qty:{" "}
+                    {
+                      scan.quantity
+                    }
                   </p>
                 </div>
-
-                <p
-                  className={`shrink-0 rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wide ${
-                    scan.action === "SALE" ||
-                    scan.action ===
-                      "REMOVE_STOCK"
-                      ? "border-red-400/20 bg-red-500/10 text-red-300"
-                      : "border-cyan-400/20 bg-cyan-400/10 text-cyan-300"
-                  }`}
-                >
-                  Qty: {scan.quantity}
-                </p>
-              </div>
-            ))
+              )
+            )
           )}
         </div>
       </GlassCard>
     </PageShell>
   );
 }
+
