@@ -40,14 +40,18 @@ model ProductVariant {
   id        String   @id @default(cuid())
   productId String
   size      String
+  barcode   String?  @unique
   stock     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  scans   ScanLog[]
 
   @@unique([productId, size])
+  @@index([productId])
 }
+
 
 model ProductPromotion {
   id        String @id @default(cuid())
@@ -94,12 +98,21 @@ model LotItem {
 model ScanLog {
   id        String     @id @default(cuid())
   productId String?
+  variantId String?
   barcode   String
   action    ScanAction
   quantity  Int        @default(1)
   createdAt DateTime   @default(now())
-  product   Product?   @relation(fields: [productId], references: [id])
+
+  product Product?        @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@index([productId])
+  @@index([variantId])
+  @@index([barcode])
 }
+
+
 
 enum ScanAction {
   ADD_STOCK

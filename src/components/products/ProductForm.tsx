@@ -1,6 +1,11 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
+import { ScanLine } from "lucide-react";
+
+import VariantBarcodeModal from "@/components/products/VariantBarcodeModal";
+
 import type {
   Product,
   ProductCategory,
@@ -18,6 +23,7 @@ type ProductFormProps = {
 type VariantDraft = {
   size: string;
   stock: number;
+  barcode: string;
 };
 
 export default function ProductForm({
@@ -38,10 +44,14 @@ export default function ProductForm({
     product?.barcode ?? draft?.barcode ?? barcode
   );
 
-  const [sku, setSku] = useState(product?.sku ?? "");
+  const [sku, setSku] = useState(
+    product?.sku ?? ""
+  );
 
   const [description, setDescription] = useState(
-    product?.description ?? draft?.description ?? ""
+    product?.description ??
+      draft?.description ??
+      ""
   );
 
   const [price, setPrice] = useState(
@@ -56,12 +66,16 @@ export default function ProductForm({
     product?.location ?? ""
   );
 
-  const [locations, setLocations] = useState<string[]>([]);
+  const [locations, setLocations] =
+    useState<string[]>([]);
 
-  const [productNames, setProductNames] = useState<string[]>([]);
+  const [productNames, setProductNames] =
+    useState<string[]>([]);
 
   const [imageUrl, setImageUrl] = useState(
-    product?.imageUrl ?? draft?.imageUrl ?? ""
+    product?.imageUrl ??
+      draft?.imageUrl ??
+      ""
   );
 
   const [category, setCategory] =
@@ -69,23 +83,50 @@ export default function ProductForm({
       product?.category ?? ""
     );
 
-  const [variants, setVariants] = useState<VariantDraft[]>(
-    product?.variants?.map((variant) => ({
-      size: variant.size,
-      stock: variant.stock,
-    })) ?? []
+  const [variants, setVariants] =
+    useState<VariantDraft[]>(
+      product?.variants?.map((variant) => ({
+        size: variant.size,
+        stock: variant.stock,
+
+        // Safe until your Product type includes barcode.
+        barcode:
+          (
+            variant as typeof variant & {
+              barcode?: string | null;
+            }
+          ).barcode ?? "",
+      })) ?? []
+    );
+
+  const [
+    barcodeVariantIndex,
+    setBarcodeVariantIndex,
+  ] = useState<number | null>(null);
+
+  const [
+    promotionEnabled,
+    setPromotionEnabled,
+  ] = useState(
+    Boolean(
+      product?.promotions?.[0]?.active
+    )
   );
 
-  const [promotionEnabled, setPromotionEnabled] = useState(
-    Boolean(product?.promotions?.[0]?.active)
+  const [
+    promotionQuantity,
+    setPromotionQuantity,
+  ] = useState(
+    product?.promotions?.[0]
+      ?.quantity?.toString() ?? "3"
   );
 
-  const [promotionQuantity, setPromotionQuantity] = useState(
-    product?.promotions?.[0]?.quantity?.toString() ?? "3"
-  );
-
-  const [promotionPrice, setPromotionPrice] = useState(
-    product?.promotions?.[0]?.price?.toString() ?? "0"
+  const [
+    promotionPrice,
+    setPromotionPrice,
+  ] = useState(
+    product?.promotions?.[0]
+      ?.price?.toString() ?? "0"
   );
 
   const [photoFile, setPhotoFile] =
@@ -142,10 +183,19 @@ export default function ProductForm({
     );
 
     setVariants(
-      product?.variants?.map((variant) => ({
-        size: variant.size,
-        stock: variant.stock,
-      })) ?? []
+      product?.variants?.map(
+        (variant) => ({
+          size: variant.size,
+          stock: variant.stock,
+
+          barcode:
+            (
+              variant as typeof variant & {
+                barcode?: string | null;
+              }
+            ).barcode ?? "",
+        })
+      ) ?? []
     );
 
     setPromotionEnabled(
@@ -155,17 +205,21 @@ export default function ProductForm({
     );
 
     setPromotionQuantity(
-      product?.promotions?.[0]?.quantity?.toString() ??
+      product?.promotions?.[0]
+        ?.quantity?.toString() ??
         "3"
     );
 
     setPromotionPrice(
-      product?.promotions?.[0]?.price?.toString() ??
+      product?.promotions?.[0]
+        ?.price?.toString() ??
         "0"
     );
 
     setPhotoFile(null);
     setPhotoPreview("");
+
+    setBarcodeVariantIndex(null);
   }, [product, draft, barcode]);
 
   useEffect(() => {
@@ -195,7 +249,9 @@ export default function ProductForm({
     async function loadProductNames() {
       try {
         const response =
-          await fetch("/api/products/names");
+          await fetch(
+            "/api/products/names"
+          );
 
         if (!response.ok) return;
 
@@ -240,6 +296,7 @@ export default function ProductForm({
       setError(
         "Please select an image file."
       );
+
       return;
     }
 
@@ -313,6 +370,7 @@ export default function ProductForm({
       {
         size: "",
         stock: 0,
+        barcode: "",
       },
     ]);
   }
@@ -356,6 +414,45 @@ export default function ProductForm({
     );
   }
 
+  function updateVariantBarcode(
+    index: number,
+    barcode: string
+  ) {
+    setVariants((current) =>
+      current.map(
+        (
+          variant,
+          currentIndex
+        ) =>
+          currentIndex === index
+            ? {
+                ...variant,
+                barcode,
+              }
+            : variant
+      )
+    );
+  }
+
+  function removeVariantBarcode(
+    index: number
+  ) {
+    setVariants((current) =>
+      current.map(
+        (
+          variant,
+          currentIndex
+        ) =>
+          currentIndex === index
+            ? {
+                ...variant,
+                barcode: "",
+              }
+            : variant
+      )
+    );
+  }
+
   function removeSize(
     index: number
   ) {
@@ -367,6 +464,30 @@ export default function ProductForm({
         ) =>
           currentIndex !== index
       )
+    );
+
+    setBarcodeVariantIndex(
+      (currentIndex) => {
+        if (
+          currentIndex === null
+        ) {
+          return null;
+        }
+
+        if (
+          currentIndex === index
+        ) {
+          return null;
+        }
+
+        if (
+          currentIndex > index
+        ) {
+          return currentIndex - 1;
+        }
+
+        return currentIndex;
+      }
     );
   }
 
@@ -408,9 +529,65 @@ export default function ProductForm({
                       0,
                       variant.stock
                     ),
+
+                  barcode:
+                    variant.barcode.trim() ||
+                    null,
                 })
               )
           : [];
+
+      const duplicateBarcodes =
+        cleanedVariants
+          .map(
+            (variant) =>
+              variant.barcode
+          )
+          .filter(
+            (
+              variantBarcode
+            ): variantBarcode is string =>
+              Boolean(
+                variantBarcode
+              )
+          )
+          .filter(
+            (
+              variantBarcode,
+              index,
+              allBarcodes
+            ) =>
+              allBarcodes.indexOf(
+                variantBarcode
+              ) !== index
+          );
+
+      if (
+        duplicateBarcodes.length > 0
+      ) {
+        setError(
+          "Two sizes cannot use the same barcode."
+        );
+
+        return;
+      }
+
+      const productBarcodeConflict =
+        cleanedVariants.some(
+          (variant) =>
+            variant.barcode ===
+            productBarcode.trim()
+        );
+
+      if (
+        productBarcodeConflict
+      ) {
+        setError(
+          "A size barcode cannot be the same as the main product barcode."
+        );
+
+        return;
+      }
 
       const totalVariantStock =
         cleanedVariants.reduce(
@@ -443,7 +620,7 @@ export default function ProductForm({
         name,
 
         barcode:
-          productBarcode,
+          productBarcode.trim(),
 
         ...(mode === "update"
           ? {
@@ -531,16 +708,20 @@ export default function ProductForm({
 
       if (!response.ok) {
         const data =
-          await response.json();
+          await response
+            .json()
+            .catch(() => null);
 
         console.error(
           data
         );
 
         setError(
-          JSON.stringify(
-            data
-          )
+          data?.error ??
+            JSON.stringify(
+              data
+            ) ??
+            "Could not save product."
         );
 
         return;
@@ -653,423 +834,516 @@ export default function ProductForm({
       ) || 0
     );
 
+  const scanningVariant =
+    barcodeVariantIndex !== null
+      ? variants[
+          barcodeVariantIndex
+        ] ?? null
+      : null;
+
   return (
-    <form
-      onSubmit={
-        handleSubmit
-      }
-      className="space-y-3 rounded-3xl border border-cyan-400/10 bg-[var(--app-bg)] p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]"
-    >
-      <div className="space-y-3">
-        <span className="block text-sm font-bold text-slate-300">
-          Product photo
-        </span>
+    <>
+      <form
+        onSubmit={
+          handleSubmit
+        }
+        className="space-y-3 rounded-3xl border border-cyan-400/10 bg-[var(--app-bg)] p-5 shadow-[0_0_35px_rgba(34,211,238,0.05)]"
+      >
+        <div className="space-y-3">
+          <span className="block text-sm font-bold text-slate-300">
+            Product photo
+          </span>
 
-        {displayedImage && (
-          <div className="overflow-hidden rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]">
-            <img
-              src={
-                displayedImage
+          {displayedImage && (
+            <div className="overflow-hidden rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]">
+              <img
+                src={
+                  displayedImage
+                }
+                alt={
+                  name ||
+                  "Product image"
+                }
+                className="h-48 w-full object-contain p-4"
+              />
+            </div>
+          )}
+
+          <label className="flex w-full cursor-pointer items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-4 font-black text-cyan-300 transition hover:border-cyan-400/40">
+            {photoFile
+              ? "Retake Photo"
+              : "Take Photo"}
+
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={
+                handlePhotoChange
               }
-              alt={
-                name ||
-                "Product image"
-              }
-              className="h-48 w-full object-contain p-4"
+              className="hidden"
             />
-          </div>
-        )}
+          </label>
 
-        <label className="flex w-full cursor-pointer items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-4 font-black text-cyan-300 transition hover:border-cyan-400/40">
-          {photoFile
-            ? "Retake Photo"
-            : "Take Photo"}
-
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={
-              handlePhotoChange
-            }
-            className="hidden"
-          />
-        </label>
-
-        {photoFile && (
-          <button
-            type="button"
-            onClick={
-              handleRemoveSelectedPhoto
-            }
-            className="w-full rounded-2xl border border-red-500/20 bg-red-500/10 py-3 font-bold text-red-300"
-          >
-            Remove Selected Photo
-          </button>
-        )}
-      </div>
-
-      <ProductNameInput
-        value={name}
-        names={productNames}
-        onChange={setName}
-      />
-
-      <Input
-        name="barcode"
-        label="Barcode"
-        value={
-          productBarcode
-        }
-        onChange={
-          setProductBarcode
-        }
-        required
-      />
-
-      {mode ===
-        "update" && (
-        <Input
-          name="sku"
-          label="SKU"
-          value={sku}
-          onChange={setSku}
-        />
-      )}
-
-      <Input
-        name="description"
-        label="Description"
-        value={
-          description
-        }
-        onChange={
-          setDescription
-        }
-      />
-
-      <Input
-        name="price"
-        label="Regular price"
-        type="number"
-        step="0.01"
-        value={price}
-        onChange={setPrice}
-        required
-      />
-
-      <section className="space-y-4 rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]/40 p-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <p className="font-black text-[var(--app-text)]">
-              Special pricing
-            </p>
-
-            <p className="mt-1 text-xs text-[var(--app-muted)]">
-              Create a bundle sale such as 3 for $10.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() =>
-              setPromotionEnabled(
-                (current) =>
-                  !current
-              )
-            }
-            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-black transition ${
-              promotionEnabled
-                ? "bg-cyan-300 text-slate-950"
-                : "border border-cyan-400/20 bg-cyan-400/10 text-cyan-300"
-            }`}
-          >
-            {promotionEnabled
-              ? "Enabled"
-              : "Enable"}
-          </button>
+          {photoFile && (
+            <button
+              type="button"
+              onClick={
+                handleRemoveSelectedPhoto
+              }
+              className="w-full rounded-2xl border border-red-500/20 bg-red-500/10 py-3 font-bold text-red-300"
+            >
+              Remove Selected Photo
+            </button>
+          )}
         </div>
 
-        {promotionEnabled && (
-          <>
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block">
-                <span className="mb-2 block text-sm font-bold text-slate-300">
-                  Quantity
-                </span>
+        <ProductNameInput
+          value={name}
+          names={productNames}
+          onChange={setName}
+        />
 
-                <input
-                  type="number"
-                  min={2}
-                  value={
-                    promotionQuantity
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    setPromotionQuantity(
-                      event
-                        .target
-                        .value
-                    )
-                  }
-                  className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)] px-4 py-4 text-[var(--app-text)] outline-none transition focus:border-cyan-300"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm font-bold text-slate-300">
-                  Bundle price
-                </span>
-
-                <input
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={
-                    promotionPrice
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    setPromotionPrice(
-                      event
-                        .target
-                        .value
-                    )
-                  }
-                  className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)] px-4 py-4 text-[var(--app-text)] outline-none transition focus:border-cyan-300"
-                />
-              </label>
-            </div>
-
-            <div className="rounded-xl border border-cyan-400/10 bg-cyan-400/5 p-3">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
-                Promotion Preview
-              </p>
-
-              <p className="mt-1 text-lg font-black text-[var(--app-text)]">
-                {
-                  promotionPreviewQuantity
-                }{" "}
-                for $
-                {promotionPreviewPrice.toFixed(
-                  2
-                )}
-              </p>
-
-              <p className="mt-1 text-xs text-[var(--app-muted)]">
-                Regular unit
-                price remains $
-                {Math.max(
-                  0,
-                  Number(
-                    price
-                  ) || 0
-                ).toFixed(2)}
-                .
-              </p>
-            </div>
-          </>
-        )}
-      </section>
-
-      <CategoryInput
-        value={category}
-        onChange={(
-          value
-        ) => {
-          setCategory(
-            value
-          );
-
-          if (
-            value !==
-            "FASHION"
-          ) {
-            setVariants(
-              []
-            );
+        <Input
+          name="barcode"
+          label="Barcode"
+          value={
+            productBarcode
           }
-        }}
-      />
+          onChange={
+            setProductBarcode
+          }
+          required
+        />
 
-      {category ===
-        "FASHION" && (
+        {mode ===
+          "update" && (
+          <Input
+            name="sku"
+            label="SKU"
+            value={sku}
+            onChange={setSku}
+          />
+        )}
+
+        <Input
+          name="description"
+          label="Description"
+          value={
+            description
+          }
+          onChange={
+            setDescription
+          }
+        />
+
+        <Input
+          name="price"
+          label="Regular price"
+          type="number"
+          step="0.01"
+          value={price}
+          onChange={setPrice}
+          required
+        />
+
         <section className="space-y-4 rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]/40 p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
               <p className="font-black text-[var(--app-text)]">
-                Fashion sizes
+                Special pricing
               </p>
 
               <p className="mt-1 text-xs text-[var(--app-muted)]">
-                Enter each
-                size and the
-                quantity available.
+                Create a bundle sale such as 3 for $10.
               </p>
             </div>
 
             <button
               type="button"
-              onClick={
-                addSize
+              onClick={() =>
+                setPromotionEnabled(
+                  (current) =>
+                    !current
+                )
               }
-              className="shrink-0 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-sm font-black text-cyan-300 transition hover:border-cyan-400/40"
+              className={`shrink-0 rounded-xl px-4 py-2 text-sm font-black transition ${
+                promotionEnabled
+                  ? "bg-cyan-300 text-slate-950"
+                  : "border border-cyan-400/20 bg-cyan-400/10 text-cyan-300"
+              }`}
             >
-              + Add Size
+              {promotionEnabled
+                ? "Enabled"
+                : "Enable"}
             </button>
           </div>
 
-          {variants.length ===
-            0 && (
-            <div className="rounded-xl border border-cyan-400/10 p-3 text-sm text-[var(--app-muted)]">
-              No sizes added
-              yet.
-            </div>
-          )}
+          {promotionEnabled && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-bold text-slate-300">
+                    Quantity
+                  </span>
 
-          {variants.map(
-            (
-              variant,
-              index
-            ) => (
-              <div
-                key={
-                  index
-                }
-                className="grid grid-cols-[minmax(0,1fr)_90px_44px] gap-2"
-              >
-                <input
-                  value={
-                    variant.size
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    updateSize(
-                      index,
-                      "size",
+                  <input
+                    type="number"
+                    min={2}
+                    value={
+                      promotionQuantity
+                    }
+                    onChange={(
                       event
-                        .target
-                        .value
-                    )
-                  }
-                  placeholder="Size (S, M, 32...)"
-                  className="min-w-0 rounded-xl border border-cyan-400/10 bg-[var(--app-bg)] px-3 py-3 text-[var(--app-text)] outline-none transition placeholder:text-slate-600 focus:border-cyan-300"
-                />
+                    ) =>
+                      setPromotionQuantity(
+                        event
+                          .target
+                          .value
+                      )
+                    }
+                    className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)] px-4 py-4 text-[var(--app-text)] outline-none transition focus:border-cyan-300"
+                  />
+                </label>
 
-                <input
-                  type="number"
-                  min={0}
-                  value={
-                    variant.stock
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    updateSize(
-                      index,
-                      "stock",
+                <label className="block">
+                  <span className="mb-2 block text-sm font-bold text-slate-300">
+                    Bundle price
+                  </span>
+
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={
+                      promotionPrice
+                    }
+                    onChange={(
                       event
-                        .target
-                        .value
-                    )
-                  }
-                  placeholder="Qty"
-                  className="min-w-0 rounded-xl border border-cyan-400/10 bg-[var(--app-bg)] px-3 py-3 text-[var(--app-text)] outline-none transition placeholder:text-slate-600 focus:border-cyan-300"
-                />
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    removeSize(
-                      index
-                    )
-                  }
-                  aria-label="Remove size"
-                  className="flex items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-lg font-black text-red-300 transition hover:bg-red-500/20"
-                >
-                  ×
-                </button>
+                    ) =>
+                      setPromotionPrice(
+                        event
+                          .target
+                          .value
+                      )
+                    }
+                    className="w-full rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)] px-4 py-4 text-[var(--app-text)] outline-none transition focus:border-cyan-300"
+                  />
+                </label>
               </div>
-            )
-          )}
 
-          {variants.length >
-            0 && (
-            <div className="flex items-center justify-between border-t border-cyan-400/10 pt-3">
-              <span className="text-sm font-bold text-[var(--app-muted)]">
-                Total fashion
-                stock
-              </span>
+              <div className="rounded-xl border border-cyan-400/10 bg-cyan-400/5 p-3">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
+                  Promotion Preview
+                </p>
 
-              <span className="text-lg font-black text-cyan-300">
-                {
-                  totalVariantStock
-                }
-              </span>
-            </div>
+                <p className="mt-1 text-lg font-black text-[var(--app-text)]">
+                  {
+                    promotionPreviewQuantity
+                  }{" "}
+                  for $
+                  {promotionPreviewPrice.toFixed(
+                    2
+                  )}
+                </p>
+
+                <p className="mt-1 text-xs text-[var(--app-muted)]">
+                  Regular unit
+                  price remains $
+                  {Math.max(
+                    0,
+                    Number(
+                      price
+                    ) || 0
+                  ).toFixed(2)}
+                  .
+                </p>
+              </div>
+            </>
           )}
         </section>
-      )}
 
-      {category !==
-        "FASHION" && (
-        <Input
-          name="stock"
-          label="Stock"
-          type="number"
-          value={stock}
-          onChange={
-            setStock
-          }
-          required
+        <CategoryInput
+          value={category}
+          onChange={(
+            value
+          ) => {
+            setCategory(
+              value
+            );
+
+            if (
+              value !==
+              "FASHION"
+            ) {
+              setVariants(
+                []
+              );
+
+              setBarcodeVariantIndex(
+                null
+              );
+            }
+          }}
         />
-      )}
 
-      <LocationInput
-        value={location}
-        locations={
-          locations
-        }
-        onChange={
-          setLocation
-        }
-      />
+        {category ===
+          "FASHION" && (
+          <section className="space-y-4 rounded-2xl border border-cyan-400/10 bg-[var(--app-panel)]/40 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-black text-[var(--app-text)]">
+                  Fashion sizes
+                </p>
 
-      <Input
-        name="imageUrl"
-        label="Image URL"
-        value={imageUrl}
-        onChange={
-          setImageUrl
-        }
-      />
+                <p className="mt-1 text-xs text-[var(--app-muted)]">
+                  Enter each size,
+                  quantity and scan
+                  the barcode assigned
+                  to that size.
+                </p>
+              </div>
 
-      {error && (
-        <p className="rounded-2xl bg-red-500/10 p-3 text-sm font-bold text-red-400">
-          {error}
-        </p>
-      )}
+              <button
+                type="button"
+                onClick={
+                  addSize
+                }
+                className="shrink-0 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-sm font-black text-cyan-300 transition hover:border-cyan-400/40"
+              >
+                + Add Size
+              </button>
+            </div>
 
-      <button
-        type="submit"
-        disabled={
-          isSaving
-        }
-        className="w-full rounded-2xl bg-cyan-300 py-4 font-black text-slate-950 disabled:opacity-60"
-      >
-        {isSaving
-          ? photoFile
-            ? "Uploading & Saving..."
-            : "Saving..."
-          : mode ===
-              "update"
-            ? "Modify product"
-            : "Create product"}
-      </button>
-    </form>
+            {variants.length ===
+              0 && (
+              <div className="rounded-xl border border-cyan-400/10 p-3 text-sm text-[var(--app-muted)]">
+                No sizes added
+                yet.
+              </div>
+            )}
+
+            {variants.map(
+              (
+                variant,
+                index
+              ) => (
+                <div
+                  key={index}
+                  className="space-y-2 rounded-2xl border border-cyan-400/10 bg-[var(--app-bg)] p-3"
+                >
+                  <div className="grid grid-cols-[minmax(0,1fr)_90px_44px] gap-2">
+                    <input
+                      value={
+                        variant.size
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        updateSize(
+                          index,
+                          "size",
+                          event
+                            .target
+                            .value
+                        )
+                      }
+                      placeholder="Size (S, M, 32...)"
+                      className="min-w-0 rounded-xl border border-cyan-400/10 bg-[var(--app-panel)] px-3 py-3 text-[var(--app-text)] outline-none transition placeholder:text-slate-600 focus:border-cyan-300"
+                    />
+
+                    <input
+                      type="number"
+                      min={0}
+                      value={
+                        variant.stock
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        updateSize(
+                          index,
+                          "stock",
+                          event
+                            .target
+                            .value
+                        )
+                      }
+                      placeholder="Qty"
+                      className="min-w-0 rounded-xl border border-cyan-400/10 bg-[var(--app-panel)] px-3 py-3 text-[var(--app-text)] outline-none transition placeholder:text-slate-600 focus:border-cyan-300"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeSize(
+                          index
+                        )
+                      }
+                      aria-label="Remove size"
+                      className="flex items-center justify-center rounded-xl border border-red-500/20 bg-red-500/10 text-lg font-black text-red-300 transition hover:bg-red-500/20"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={
+                      !variant.size.trim()
+                    }
+                    onClick={() =>
+                      setBarcodeVariantIndex(
+                        index
+                      )
+                    }
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-3 py-3 text-sm font-black text-cyan-300 transition hover:border-cyan-400/40 hover:bg-cyan-400/15 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ScanLine
+                      size={17}
+                    />
+
+                    {variant.barcode
+                      ? `Barcode: ${variant.barcode}`
+                      : "Scan size barcode"}
+                  </button>
+
+                  {variant.barcode && (
+                    <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-400/10 bg-emerald-400/5 px-3 py-2">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">
+                          Assigned
+                        </p>
+
+                        <p className="truncate text-xs font-bold text-[var(--app-muted)]">
+                          {
+                            variant.barcode
+                          }
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeVariantBarcode(
+                            index
+                          )
+                        }
+                        className="shrink-0 text-xs font-black text-red-300 transition hover:text-red-200"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            )}
+
+            {variants.length >
+              0 && (
+              <div className="flex items-center justify-between border-t border-cyan-400/10 pt-3">
+                <span className="text-sm font-bold text-[var(--app-muted)]">
+                  Total fashion
+                  stock
+                </span>
+
+                <span className="text-lg font-black text-cyan-300">
+                  {
+                    totalVariantStock
+                  }
+                </span>
+              </div>
+            )}
+          </section>
+        )}
+
+        {category !==
+          "FASHION" && (
+          <Input
+            name="stock"
+            label="Stock"
+            type="number"
+            value={stock}
+            onChange={
+              setStock
+            }
+            required
+          />
+        )}
+
+        <LocationInput
+          value={location}
+          locations={
+            locations
+          }
+          onChange={
+            setLocation
+          }
+        />
+
+        <Input
+          name="imageUrl"
+          label="Image URL"
+          value={imageUrl}
+          onChange={
+            setImageUrl
+          }
+        />
+
+        {error && (
+          <p className="rounded-2xl bg-red-500/10 p-3 text-sm font-bold text-red-400">
+            {error}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          disabled={
+            isSaving
+          }
+          className="w-full rounded-2xl bg-cyan-300 py-4 font-black text-slate-950 disabled:opacity-60"
+        >
+          {isSaving
+            ? photoFile
+              ? "Uploading & Saving..."
+              : "Saving..."
+            : mode ===
+                "update"
+              ? "Modify product"
+              : "Create product"}
+        </button>
+      </form>
+
+      {barcodeVariantIndex !==
+        null &&
+        scanningVariant && (
+          <VariantBarcodeModal
+            size={
+              scanningVariant.size
+            }
+            currentBarcode={
+              scanningVariant.barcode
+            }
+            onClose={() =>
+              setBarcodeVariantIndex(
+                null
+              )
+            }
+            onConfirm={(
+              scannedBarcode
+            ) => {
+              updateVariantBarcode(
+                barcodeVariantIndex,
+                scannedBarcode
+              );
+
+              setBarcodeVariantIndex(
+                null
+              );
+            }}
+          />
+        )}
+    </>
   );
 }
 
@@ -1080,6 +1354,7 @@ function ProductNameInput({
 }: {
   value: string;
   names: string[];
+
   onChange: (
     value: string
   ) => void;
@@ -1294,6 +1569,7 @@ function LocationInput({
       setIsCustom(
         false
       );
+
       return;
     }
 
